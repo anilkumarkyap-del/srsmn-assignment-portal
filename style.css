@@ -1,1 +1,87 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
 
+body{
+    background:linear-gradient(135deg,#1d4ed8,#2563eb,#60a5fa);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.hero{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.card{
+    width:420px;
+    background:white;
+    border-radius:20px;
+    padding:45px 30px;
+    text-align:center;
+    box-shadow:0 20px 40px rgba(0,0,0,.18);
+}
+
+.logo{
+    width:90px;
+    height:90px;
+    margin:auto;
+    border-radius:50%;
+    background:#2563eb;
+    color:white;
+    font-size:34px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:20px;
+}
+
+h1{
+    color:#1e3a8a;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#64748b;
+    margin-bottom:35px;
+    font-size:15px;
+    line-height:24px;
+}
+
+.buttons{
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.btn{
+    text-decoration:none;
+    padding:15px;
+    border-radius:12px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.student{
+    background:#2563eb;
+    color:white;
+}
+
+.teacher{
+    background:#0f172a;
+    color:white;
+}
+
+.btn:hover{
+    transform:translateY(-3px);
+    opacity:.92;
+}
