@@ -1,1 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Portal</title>
 
+<link rel="stylesheet" href="style.css">
+
+<style>
+body{
+    background:#eef4ff;
+    font-family:Arial,sans-serif;
+    padding:30px;
+}
+.card{
+    max-width:600px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,.1);
+}
+h2{
+    text-align:center;
+    color:#2563eb;
+}
+input,select{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+button{
+    width:100%;
+    padding:12px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    cursor:pointer;
+}
+button:hover{
+    background:#1d4ed8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Create Assignment</h2>
+
+<input id="title" placeholder="Assignment Title">
+
+<input id="subject" placeholder="Subject Name">
+
+<select id="semester">
+<option value="">Select Semester</option>
+<option value="1">I Semester</option>
+<option value="2">II Semester</option>
+<option value="3">III Semester</option>
+<option value="4">IV Semester</option>
+<option value="5">V Semester</option>
+<option value="6">VI Semester</option>
+</select>
+
+<label>Due Date</label>
+<input id="due" type="date">
+
+<button onclick="createAssignment()">Publish Assignment</button>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
