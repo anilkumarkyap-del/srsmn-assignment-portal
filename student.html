@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Portal</title>
+
 <link rel="stylesheet" href="style.css">
 
 <style>
@@ -18,14 +19,24 @@ body{
     background:white;
     border-radius:18px;
     padding:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,.1);
 }
-h2{text-align:center;color:#1d4ed8;}
+h2{
+    text-align:center;
+    color:#1d4ed8;
+}
+p{
+    text-align:center;
+    color:#64748b;
+    margin-bottom:20px;
+}
 input,select{
     width:100%;
     padding:12px;
     margin:8px 0;
     border:1px solid #ccc;
     border-radius:8px;
+    font-size:15px;
 }
 button{
     width:100%;
@@ -35,77 +46,103 @@ button{
     color:white;
     border-radius:8px;
     font-size:16px;
+    cursor:pointer;
+    margin-top:10px;
+}
+button:hover{
+    background:#1d4ed8;
 }
 .link{
     text-align:center;
     margin-top:15px;
     color:#2563eb;
     cursor:pointer;
+    font-weight:600;
 }
-#registerBox{display:none;}
+#registerBox{
+    display:none;
+}
 </style>
+
 </head>
 
 <body>
 
 <div class="card">
 
-<div id="loginBox">
-<h2>Student Login</h2>
+    <!-- LOGIN -->
 
-<input placeholder="Register Number">
-<input type="password" placeholder="Password">
+    <div id="loginBox">
 
-<button>Login</button>
+        <h2>Student Login</h2>
 
-<div class="link" onclick="showRegister()">
-New Student? Register
-</div>
-</div>
+        <p>Login using Register Number & Password</p>
 
+        <input id="loginReg" type="text" placeholder="Register Number">
 
-<div id="registerBox">
+        <input id="loginPass" type="password" placeholder="Password">
 
-<h2>Create Account</h2>
+        <button onclick="loginStudent()">Login</button>
 
-<input placeholder="Register Number">
-<input placeholder="Student Name">
-<input placeholder="Email">
+        <div class="link" onclick="showRegister()">
+            New Student? Register
+        </div>
 
-<select>
-<option>Select Semester</option>
-<option>I Semester</option>
-<option>II Semester</option>
-<option>III Semester</option>
-<option>IV Semester</option>
-<option>V Semester</option>
-<option>VI Semester</option>
-</select>
+    </div>
 
-<input type="password" placeholder="Create Password">
-<input type="password" placeholder="Confirm Password">
+    <!-- REGISTER -->
 
-<button>Create Account</button>
+    <div id="registerBox">
 
-<div class="link" onclick="showLogin()">
-Already have an account?
-</div>
+        <h2>Create Account</h2>
 
-</div>
+        <p>Register once to access assignments</p>
+
+        <input id="reg" type="text" placeholder="Register Number">
+
+        <input id="name" type="text" placeholder="Student Name">
+
+        <input id="email" type="email" placeholder="Personal Email">
+
+        <select id="semester">
+            <option value="">Select Semester</option>
+            <option value="1">I Semester</option>
+            <option value="2">II Semester</option>
+            <option value="3">III Semester</option>
+            <option value="4">IV Semester</option>
+            <option value="5">V Semester</option>
+            <option value="6">VI Semester</option>
+        </select>
+
+        <input id="password" type="password" placeholder="Create Password">
+
+        <input id="confirmPassword" type="password" placeholder="Confirm Password">
+
+        <button onclick="registerStudent()">Create Account</button>
+
+        <div class="link" onclick="showLogin()">
+            Already have an account? Login
+        </div>
+
+    </div>
 
 </div>
 
 <script>
 function showRegister(){
-document.getElementById("loginBox").style.display="none";
-document.getElementById("registerBox").style.display="block";
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("registerBox").style.display="block";
 }
 
 function showLogin(){
-document.getElementById("registerBox").style.display="none";
-document.getElementById("loginBox").style.display="block";
+    document.getElementById("registerBox").style.display="none";
+    document.getElementById("loginBox").style.display="block";
 }
 </script>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
 
 </body>
 </html>
