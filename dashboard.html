@@ -116,28 +116,32 @@ async function loadAssignments(){
 
 async function uploadPDF(id){
 
- const file = document.getElementById("file"+id).files[0];
+  const file = document.getElementById("file"+id).files[0];
 
- if(!file){
-   alert("Choose a PDF first");
-   return;
- }
+  if(!file){
+    alert("Choose a PDF first");
+    return;
+  }
 
- const filename = reg + "_" + id + ".pdf";
+  const filename = reg + "_" + id + ".pdf";
 
- const {error} = await db.storage
- .from("assignments")
- .upload(filename,file,{upsert:true});
+  const { error } = await db.storage
+    .from("assignments")
+    .upload(filename, file, { upsert:true });
 
- if(error){
-   alert(error.message);
-   return;
- }
+  if(error){
+    alert(error.message);
+    return;
+  }
 
- alert("PDF uploaded successfully!");
+  await db.from("submissions").insert({
+    reg_no: reg,
+    assignment_id: id,
+    file_name: filename
+  });
 
+  alert("PDF uploaded successfully!");
 }
-
 loadAssignments();
 
 </script>
