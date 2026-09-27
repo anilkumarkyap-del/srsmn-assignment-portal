@@ -1,1 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Portal</title>
+<link rel="stylesheet" href="style.css">
 
+<style>
+body{
+    background:#eef4ff;
+    padding:30px;
+    font-family:Poppins,sans-serif;
+}
+.card{
+    max-width:450px;
+    margin:auto;
+    background:white;
+    border-radius:18px;
+    padding:25px;
+}
+h2{text-align:center;color:#1d4ed8;}
+input,select{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    background:#2563eb;
+    color:white;
+    border-radius:8px;
+    font-size:16px;
+}
+.link{
+    text-align:center;
+    margin-top:15px;
+    color:#2563eb;
+    cursor:pointer;
+}
+#registerBox{display:none;}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div id="loginBox">
+<h2>Student Login</h2>
+
+<input placeholder="Register Number">
+<input type="password" placeholder="Password">
+
+<button>Login</button>
+
+<div class="link" onclick="showRegister()">
+New Student? Register
+</div>
+</div>
+
+
+<div id="registerBox">
+
+<h2>Create Account</h2>
+
+<input placeholder="Register Number">
+<input placeholder="Student Name">
+<input placeholder="Email">
+
+<select>
+<option>Select Semester</option>
+<option>I Semester</option>
+<option>II Semester</option>
+<option>III Semester</option>
+<option>IV Semester</option>
+<option>V Semester</option>
+<option>VI Semester</option>
+</select>
+
+<input type="password" placeholder="Create Password">
+<input type="password" placeholder="Confirm Password">
+
+<button>Create Account</button>
+
+<div class="link" onclick="showLogin()">
+Already have an account?
+</div>
+
+</div>
+
+</div>
+
+<script>
+function showRegister(){
+document.getElementById("loginBox").style.display="none";
+document.getElementById("registerBox").style.display="block";
+}
+
+function showLogin(){
+document.getElementById("registerBox").style.display="none";
+document.getElementById("loginBox").style.display="block";
+}
+</script>
+
+</body>
+</html>
