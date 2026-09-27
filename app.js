@@ -81,5 +81,7 @@ async function loginStudent() {
   }
 
   localStorage.setItem("reg_no", reg);
-  alert("Login Successful!");
+localStorage.setItem("semester", student.semester);
+
+window.location.href = "dashboard.html";
 }
