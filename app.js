@@ -3,7 +3,7 @@
 // =======================================
 
 const db = window.supabase.createClient(
-  "https://cfhhcmyfewwvdylqvcdg.supabase.co",
+  "https://cfhhcmyfewvvdylqvcdg.supabase.co",
   "sb_publishable_54d-5PRIOoE5gQ3HtHyAUg_5N1Cjh7F"
 );
 
