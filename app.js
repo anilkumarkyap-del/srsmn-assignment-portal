@@ -1,9 +1,14 @@
+// -----------------------------
+// SUPABASE CONNECTION
+// -----------------------------
 const db = window.supabase.createClient(
   "https://cfhhcmyfewwvdylqvcdg.supabase.co",
   "sb_publishable_54d-5PRIOoE5gQ3HtHyAUg_5N1Cjh7F"
 );
 
-// ---------- REGISTER ----------
+// -----------------------------
+// REGISTER STUDENT
+// -----------------------------
 async function registerStudent() {
 
   const reg = document.getElementById("reg").value.trim();
@@ -11,59 +16,84 @@ async function registerStudent() {
   const email = document.getElementById("email").value.trim();
   const sem = document.getElementById("semester").value;
   const pass = document.getElementById("password").value;
+  const confirm = document.getElementById("confirmPassword").value;
 
-  if(!reg || !name || !email || !sem || !pass){
-    alert("Please fill all fields");
+  if (!reg || !name || !email || !sem || !pass || !confirm) {
+    alert("Please fill all fields.");
     return;
   }
 
-  const {error} = await supabase.auth.signUp({
-      email: email,
-      password: pass
-  });
-
-  if(error){
-      alert(error.message);
-      return;
+  if (pass !== confirm) {
+    alert("Passwords do not match.");
+    return;
   }
 
-  await supabase.from("students").insert({
-      reg_no: reg,
-      name: name,
-      email: email,
-      semester: parseInt(sem)
+  // Create login account
+  const { error: authError } = await db.auth.signUp({
+    email: email,
+    password: pass
   });
 
-  alert("Account created! Verify your email once.");
+  if (authError) {
+    alert(authError.message);
+    return;
+  }
+
+  // Save student details
+  const { error: dbError } = await db.from("students").insert({
+    reg_no: reg,
+    name: name,
+    email: email,
+    semester: Number(sem)
+  });
+
+  if (dbError) {
+    alert(dbError.message);
+    return;
+  }
+
+  alert("Account created successfully!");
+
+  showLogin();
 }
 
-// ---------- LOGIN ----------
-async function loginStudent(){
+// -----------------------------
+// LOGIN
+// -----------------------------
+async function loginStudent() {
 
   const reg = document.getElementById("loginReg").value.trim();
   const pass = document.getElementById("loginPass").value;
 
-  const {data:student} = await supabase
-      .from("students")
-      .select("*")
-      .eq("reg_no",reg)
-      .single();
-
-  if(!student){
-      alert("Register number not found");
-      return;
+  if (!reg || !pass) {
+    alert("Enter Register Number and Password.");
+    return;
   }
 
-  const {error} = await supabase.auth.signInWithPassword({
-      email: student.email,
-      password: pass
+  const { data: student, error } = await db
+    .from("students")
+    .select("*")
+    .eq("reg_no", reg)
+    .single();
+
+  if (error || !student) {
+    alert("Register Number not found.");
+    return;
+  }
+
+  const { error: loginError } = await db.auth.signInWithPassword({
+    email: student.email,
+    password: pass
   });
 
-  if(error){
-      alert("Wrong password");
-      return;
+  if (loginError) {
+    alert("Invalid password.");
+    return;
   }
 
-  localStorage.setItem("reg_no",reg);
-  window.location.href="dashboard.html";
+  localStorage.setItem("reg_no", reg);
+
+  alert("Login Successful!");
+  // Next step
+  // window.location.href = "dashboard.html";
 }
