@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body{
+  background:#eef4ff;
+  font-family:Arial,sans-serif;
+  padding:30px;
+}
+.card{
+  max-width:600px;
+  margin:auto;
+  background:white;
+  padding:25px;
+  border-radius:15px;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Welcome Student</h2>
+
+  <p id="reg"></p>
+
+  <h3>Assignment 1</h3>
+  <input type="file" accept=".pdf">
+  <br><br>
+  <button>Upload PDF</button>
+
+  <hr>
+
+  <h3>Assignment 2</h3>
+  <input type="file" accept=".pdf">
+  <br><br>
+  <button>Upload PDF</button>
+
+</div>
+
+<script>
+document.getElementById("reg").innerHTML =
+"Register Number : " + localStorage.getItem("reg_no");
+</script>
+
+</body>
+</html>
