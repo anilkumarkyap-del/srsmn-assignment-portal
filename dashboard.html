@@ -3,47 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard</title>
+<title>My Assignments</title>
+
 <link rel="stylesheet" href="style.css">
+
 <style>
 body{
-  background:#eef4ff;
-  font-family:Arial,sans-serif;
-  padding:30px;
+    background:#eef4ff;
+    font-family:Arial,sans-serif;
+    padding:25px;
+}
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 .card{
-  max-width:600px;
-  margin:auto;
-  background:white;
-  padding:25px;
-  border-radius:15px;
+    background:white;
+    border-radius:12px;
+    padding:18px;
+    margin-top:15px;
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+}
+.badge{
+    background:#2563eb;
+    color:white;
+    padding:5px 12px;
+    border-radius:20px;
 }
 </style>
+
 </head>
 <body>
 
-<div class="card">
-  <h2>Welcome Student</h2>
-
-  <p id="reg"></p>
-
-  <h3>Assignment 1</h3>
-  <input type="file" accept=".pdf">
-  <br><br>
-  <button>Upload PDF</button>
-
-  <hr>
-
-  <h3>Assignment 2</h3>
-  <input type="file" accept=".pdf">
-  <br><br>
-  <button>Upload PDF</button>
-
+<div class="top">
+<h2>My Assignments</h2>
+<div class="badge" id="sem"></div>
 </div>
 
+<p id="reg"></p>
+
+<div id="list"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-document.getElementById("reg").innerHTML =
-"Register Number : " + localStorage.getItem("reg_no");
+
+const db = window.supabase.createClient(
+ "YOUR_PROJECT_URL",
+ "YOUR_PUBLISHABLE_KEY"
+);
+
+const semester = localStorage.getItem("semester");
+const reg = localStorage.getItem("reg_no");
+
+document.getElementById("sem").innerHTML="Semester "+semester;
+document.getElementById("reg").innerHTML="Register No : "+reg;
+
+async function loadAssignments(){
+
+ const {data}=await db
+ .from("assignments")
+ .select("*")
+ .eq("semester",Number(semester))
+ .order("id");
+
+ let html="";
+
+ data.forEach(a=>{
+ html+=`
+ <div class="card">
+ <h3>${a.title}</h3>
+ <p><b>Subject:</b> ${a.subject}</p>
+ <p><b>Due Date:</b> ${a.due_date}</p>
+ <input type="file" accept=".pdf">
+ <br><br>
+ <button>Upload PDF</button>
+ </div>
+ `;
+ });
+
+ document.getElementById("list").innerHTML=html;
+
+}
+
+loadAssignments();
+
 </script>
 
 </body>
