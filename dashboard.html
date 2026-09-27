@@ -134,11 +134,12 @@ async function uploadPDF(id){
     return;
   }
 
-  await db.from("submissions").insert({
-    reg_no: reg,
-    assignment_id: id,
-    file_name: filename
-  });
+ await db.from("submissions").insert({
+  reg_no: reg,
+  assignment_id: id,
+  pdf_url: filename,
+  status: "Submitted"
+});
 
   alert("PDF uploaded successfully!");
 }
