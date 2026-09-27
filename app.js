@@ -85,3 +85,37 @@ localStorage.setItem("semester", student.semester);
 
 window.location.href = "dashboard.html";
 }
+// -----------------------------
+// CREATE ASSIGNMENT
+// -----------------------------
+async function createAssignment(){
+
+  const title=document.getElementById("title").value.trim();
+  const subject=document.getElementById("subject").value.trim();
+  const semester=document.getElementById("semester").value;
+  const due=document.getElementById("due").value;
+
+  if(!title || !subject || !semester || !due){
+      alert("Please fill all fields.");
+      return;
+  }
+
+  const {error}=await db.from("assignments").insert({
+      title:title,
+      subject:subject,
+      semester:Number(semester),
+      due_date:due
+  });
+
+  if(error){
+      alert(error.message);
+      return;
+  }
+
+  alert("Assignment Published Successfully!");
+
+  document.getElementById("title").value="";
+  document.getElementById("subject").value="";
+  document.getElementById("semester").value="";
+  document.getElementById("due").value="";
+}
