@@ -916,7 +916,31 @@ Save Changes
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script src="app.js"></script>
+<script>
+async function checkTeacherAccess() {
 
+    const {
+        data: { session }
+    } = await db.auth.getSession();
+
+    if (!session) {
+        window.location.href = "teacher-login.html";
+        return;
+    }
+
+    if (session.user.email.toLowerCase() !== "anilkumarky.ap@gmail.com") {
+
+        await db.auth.signOut();
+
+        alert("Access denied.");
+
+        window.location.href = "teacher-login.html";
+        return;
+    }
+}
+
+checkTeacherAccess();
+</script>
 
 <script>
 
