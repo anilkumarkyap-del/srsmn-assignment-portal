@@ -4,7 +4,6 @@
 <head>
 
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Teacher Portal</title>
@@ -12,10 +11,6 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-
-/* =========================================
-   PAGE
-========================================= */
 
 *{
     box-sizing:border-box;
@@ -25,44 +20,23 @@ body{
     margin:0;
     padding:25px;
     background:#eef4ff;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family:Arial,Helvetica,sans-serif;
 }
-
-
-/* =========================================
-   MAIN CONTAINER
-========================================= */
 
 .container{
     width:100%;
     max-width:none;
-    margin:0 auto;
+    margin:auto;
 }
-
-
-/* =========================================
-   CARDS
-========================================= */
 
 .card{
     width:100%;
-    max-width:none;
-
     background:white;
-
     padding:25px;
-
     margin-bottom:25px;
-
     border-radius:15px;
-
-    box-shadow:0 8px 20px rgba(0,0,0,0.10);
+    box-shadow:0 8px 20px rgba(0,0,0,.10);
 }
-
-
-/* =========================================
-   HEADINGS
-========================================= */
 
 h1{
     text-align:center;
@@ -77,83 +51,45 @@ h2{
     margin-bottom:25px;
 }
 
-
-/* =========================================
-   FORM
-========================================= */
-
 .form-grid{
     display:grid;
-
-    grid-template-columns:
-        2fr
-        2fr
-        1fr
-        1fr;
-
+    grid-template-columns:2fr 2fr 1fr 1fr;
     gap:15px;
-
     align-items:end;
 }
 
-.form-group{
-    width:100%;
-}
-
-.form-group label{
+.form-group label,
+.filter-group label{
     display:block;
-
     font-weight:bold;
-
     margin-bottom:7px;
-
     color:#374151;
 }
 
 input,
 select{
     width:100%;
-
     padding:12px;
-
     border:1px solid #cbd5e1;
-
     border-radius:8px;
-
     font-size:15px;
-
     background:white;
 }
 
 input:focus,
 select:focus{
     outline:none;
-
     border-color:#2563eb;
-
-    box-shadow:0 0 0 2px rgba(37,99,235,.12);
 }
-
-
-/* =========================================
-   BUTTONS
-========================================= */
 
 button{
     border:none;
-
     padding:11px 16px;
-
     border-radius:8px;
-
     background:#2563eb;
-
     color:white;
-
     font-size:14px;
-
     font-weight:bold;
-
     cursor:pointer;
 }
 
@@ -163,8 +99,6 @@ button:hover{
 
 .publish-btn{
     width:100%;
-
-    height:43px;
 }
 
 .refresh-btn{
@@ -177,119 +111,55 @@ button:hover{
 
 .pdf-btn{
     background:#7c3aed;
-
     padding:8px 12px;
-
     font-size:13px;
-}
-
-.pdf-btn:hover{
-    background:#6d28d9;
 }
 
 .review-btn{
     background:#059669;
-
     padding:8px 12px;
-
     font-size:13px;
-}
-
-.review-btn:hover{
-    background:#047857;
 }
 
 .update-btn{
     background:#f59e0b;
-
     padding:8px 12px;
-
     font-size:13px;
 }
 
-.update-btn:hover{
-    background:#d97706;
-}
-
-
-/* =========================================
-   FILTER AREA
-========================================= */
-
 .filter-area{
-
     display:grid;
-
-    grid-template-columns:
-        1fr
-        1fr
-        auto;
-
+    grid-template-columns:1fr 1fr auto;
     gap:15px;
-
     align-items:end;
-
     margin-bottom:20px;
 }
 
-.filter-group label{
-
-    display:block;
-
-    font-weight:bold;
-
-    margin-bottom:7px;
-
-    color:#374151;
-}
-
-
-/* =========================================
-   STATISTICS
-========================================= */
-
 .stats{
-
     display:grid;
-
-    grid-template-columns:
-        repeat(3,1fr);
-
+    grid-template-columns:repeat(3,1fr);
     gap:15px;
-
     margin-bottom:20px;
 }
 
 .stat-box{
-
     background:#f8fafc;
-
     border:1px solid #e2e8f0;
-
     border-radius:12px;
-
     padding:18px;
-
     text-align:center;
 }
 
 .stat-title{
-
     color:#475569;
-
     font-size:15px;
 }
 
 .stat-number{
-
     display:block;
-
     margin-top:7px;
-
     font-size:28px;
-
     font-weight:bold;
-
     color:#2563eb;
 }
 
@@ -301,250 +171,127 @@ button:hover{
     color:#059669;
 }
 
-
-/* =========================================
-   TABLE SECTION
-========================================= */
-
-.table-heading{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:15px;
-
-    gap:15px;
-
-    flex-wrap:wrap;
-}
-
-
-/* =========================================
-   FULL WIDTH TABLE
-========================================= */
-
 .table-container{
-
     width:100%;
-
     overflow-x:auto;
-
     border:1px solid #dbeafe;
-
     border-radius:10px;
 }
 
-
-/*
-   The table is intentionally wide.
-   On smaller screens the user can scroll horizontally.
-*/
-
 table{
-
     width:100%;
-
-    min-width:1100px;
-
+    min-width:900px;
     border-collapse:collapse;
-
     background:white;
 }
 
-
-/* =========================================
-   TABLE HEADER
-========================================= */
-
 thead th{
-
     background:#2563eb;
-
     color:white;
-
     padding:14px 12px;
-
     font-size:14px;
-
     text-align:center;
-
     white-space:nowrap;
-
-    border-right:1px solid rgba(255,255,255,.2);
 }
 
-
-/* =========================================
-   TABLE BODY
-========================================= */
-
 tbody td{
-
     padding:13px 12px;
-
     border-bottom:1px solid #e5e7eb;
-
     text-align:center;
-
     white-space:nowrap;
-
     font-size:14px;
 }
 
 tbody tr:hover td{
-
     background:#f8fafc;
 }
 
-
-/* =========================================
-   STUDENT NAME
-========================================= */
-
 .student-name{
-
     font-weight:bold;
-
     color:#1e293b;
 }
 
-
-/* =========================================
-   REGISTER NUMBER
-========================================= */
-
 .reg-number{
-
     font-weight:bold;
-
     color:#1d4ed8;
 }
 
-
-/* =========================================
-   ASSIGNMENT
-========================================= */
-
 .assignment-title{
-
     font-weight:bold;
-
     color:#334155;
 }
 
 .subject{
-
     color:#64748b;
-
     font-size:12px;
-
     margin-top:3px;
 }
 
-
-/* =========================================
-   STATUS
-========================================= */
-
 .status{
-
     display:inline-block;
-
     padding:6px 11px;
-
     border-radius:20px;
-
     font-size:12px;
-
     font-weight:bold;
 }
 
 .status-submitted{
-
     background:#fef3c7;
-
     color:#92400e;
 }
 
 .status-reviewed{
-
     background:#dcfce7;
-
     color:#166534;
 }
 
-
-/* =========================================
-   MARK INPUT
-========================================= */
-
 .mark-input{
-
     width:75px !important;
-
     padding:8px !important;
-
     margin:0 !important;
-
     text-align:center;
-
     font-weight:bold;
 }
 
-
-/* =========================================
-   EMPTY MESSAGE
-========================================= */
-
 .empty{
-
     padding:45px;
-
     text-align:center;
-
     color:#64748b;
-
     font-size:16px;
 }
 
-
-/* =========================================
-   MOBILE
-========================================= */
+.student-filter{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:15px;
+    align-items:end;
+    margin-bottom:20px;
+}
 
 @media(max-width:900px){
 
     body{
-
         padding:10px;
-
     }
 
     .form-grid{
-
         grid-template-columns:1fr;
-
     }
 
     .filter-area{
-
         grid-template-columns:1fr;
+    }
 
+    .student-filter{
+        grid-template-columns:1fr;
     }
 
     .stats{
-
         grid-template-columns:1fr;
-
     }
 
     .card{
-
         padding:15px;
-
     }
 
 }
@@ -561,7 +308,7 @@ tbody tr:hover td{
 
 
 <!-- =====================================================
-     TEACHER HEADER
+     HEADER
 ===================================================== -->
 
 <div class="card">
@@ -588,11 +335,8 @@ Assignment Management & Student Submissions
 
 <h2>Create Assignment</h2>
 
-
 <div class="form-grid">
 
-
-<!-- TITLE -->
 
 <div class="form-group">
 
@@ -607,8 +351,6 @@ placeholder="Example: Assignment 1">
 </div>
 
 
-<!-- SUBJECT -->
-
 <div class="form-group">
 
 <label>
@@ -622,8 +364,6 @@ placeholder="Example: IFRS">
 </div>
 
 
-<!-- SEMESTER -->
-
 <div class="form-group">
 
 <label>
@@ -636,36 +376,17 @@ Semester
 Select Semester
 </option>
 
-<option value="1">
-I Semester
-</option>
-
-<option value="2">
-II Semester
-</option>
-
-<option value="3">
-III Semester
-</option>
-
-<option value="4">
-IV Semester
-</option>
-
-<option value="5">
-V Semester
-</option>
-
-<option value="6">
-VI Semester
-</option>
+<option value="1">I Semester</option>
+<option value="2">II Semester</option>
+<option value="3">III Semester</option>
+<option value="4">IV Semester</option>
+<option value="5">V Semester</option>
+<option value="6">VI Semester</option>
 
 </select>
 
 </div>
 
-
-<!-- DUE DATE -->
 
 <div class="form-group">
 
@@ -682,9 +403,7 @@ type="date">
 
 </div>
 
-
 <br>
-
 
 <button
 class="publish-btn"
@@ -693,7 +412,6 @@ onclick="createAssignment()">
 Publish Assignment
 
 </button>
-
 
 </div>
 
@@ -705,19 +423,11 @@ Publish Assignment
 
 <div class="card">
 
+<h2>Student Submissions</h2>
 
-<h2>
-Student Submissions
-</h2>
-
-
-
-<!-- FILTERS -->
 
 <div class="filter-area">
 
-
-<!-- ASSIGNMENT FILTER -->
 
 <div class="filter-group">
 
@@ -738,8 +448,6 @@ All Assignments
 </div>
 
 
-<!-- SEARCH -->
-
 <div class="filter-group">
 
 <label>
@@ -753,8 +461,6 @@ oninput="displaySubmissions()">
 
 </div>
 
-
-<!-- REFRESH -->
 
 <div>
 
@@ -772,10 +478,6 @@ onclick="loadAllData()">
 </div>
 
 
-
-<!-- =====================================================
-     STATISTICS
-===================================================== -->
 
 <div class="stats">
 
@@ -835,77 +537,29 @@ id="reviewedCount">
 
 
 
-<!-- =====================================================
-     TABLE
-===================================================== -->
-
-<div class="table-heading">
-
-<div>
-
-<strong>
-Submission List
-</strong>
-
-<span
-id="recordInfo"
-style="color:#64748b;">
-</span>
-
-</div>
-
-</div>
-
-
 <div class="table-container">
 
-
 <table>
-
 
 <thead>
 
 <tr>
 
-<th>
-#
-</th>
-
-<th>
-Register No.
-</th>
-
-<th>
-Student Name
-</th>
-
-<th>
-Assignment
-</th>
-
-<th>
-Status
-</th>
-
-<th>
-Submitted PDF
-</th>
-
-<th>
-Marks
-</th>
-
-<th>
-Action
-</th>
+<th>#</th>
+<th>Register No.</th>
+<th>Student Name</th>
+<th>Assignment</th>
+<th>Status</th>
+<th>Submitted PDF</th>
+<th>Marks</th>
+<th>Action</th>
 
 </tr>
 
 </thead>
 
 
-<tbody
-id="submissionTable">
+<tbody id="submissionTable">
 
 <tr>
 
@@ -921,13 +575,99 @@ Loading submissions...
 
 </tbody>
 
+</table>
+
+</div>
+
+</div>
+
+
+
+<!-- =====================================================
+     STUDENT MANAGEMENT
+===================================================== -->
+
+<div class="card">
+
+<h2>Student Management</h2>
+
+
+<div class="student-filter">
+
+
+<div class="filter-group">
+
+<label>
+Search Student
+</label>
+
+<input
+id="studentSearch"
+placeholder="Search by Register Number or Student Name"
+oninput="displayStudents()">
+
+</div>
+
+
+<div>
+
+<button
+class="refresh-btn"
+onclick="loadStudentsManagement()">
+
+🔄 Refresh Students
+
+</button>
+
+</div>
+
+
+</div>
+
+
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>#</th>
+<th>Register No.</th>
+<th>Student Name</th>
+<th>Email</th>
+<th>Semester</th>
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="studentTable">
+
+<tr>
+
+<td
+colspan="6"
+class="empty">
+
+Loading students...
+
+</td>
+
+</tr>
+
+</tbody>
 
 </table>
 
 </div>
 
-
 </div>
+
 
 
 </div>
@@ -940,11 +680,7 @@ Loading submissions...
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
-<!-- EXISTING APP.JS -->
-
 <script src="app.js"></script>
-
 
 
 <script>
@@ -963,7 +699,7 @@ let allStudents = [];
 
 
 /* =====================================================
-   LOAD ALL DATA
+   LOAD ASSIGNMENTS + STUDENTS + SUBMISSIONS
 ===================================================== */
 
 async function loadAllData(){
@@ -978,22 +714,20 @@ async function loadAllData(){
 
         <tr>
 
-            <td
-            colspan="8"
-            class="empty">
+        <td
+        colspan="8"
+        class="empty">
 
-                Loading submissions...
+        Loading submissions...
 
-            </td>
+        </td>
 
         </tr>
 
     `;
 
 
-    /* ---------------------------------------------
-       LOAD ASSIGNMENTS
-    --------------------------------------------- */
+    /* LOAD ASSIGNMENTS */
 
     const {
         data: assignments,
@@ -1001,7 +735,7 @@ async function loadAllData(){
     } = await db
         .from("assignments")
         .select("*")
-        .order("id", {
+        .order("id",{
             ascending:true
         });
 
@@ -1012,14 +746,14 @@ async function loadAllData(){
 
         <tr>
 
-            <td
-            colspan="8"
-            class="empty">
+        <td
+        colspan="8"
+        class="empty">
 
-                Error loading assignments:
-                ${assignmentError.message}
+        Error loading assignments:
+        ${assignmentError.message}
 
-            </td>
+        </td>
 
         </tr>
 
@@ -1033,9 +767,7 @@ async function loadAllData(){
         assignments || [];
 
 
-    /* ---------------------------------------------
-       LOAD STUDENTS
-    --------------------------------------------- */
+    /* LOAD STUDENTS */
 
     const {
         data: students,
@@ -1043,7 +775,7 @@ async function loadAllData(){
     } = await db
         .from("students")
         .select(
-            "reg_no,name"
+            "reg_no,name,email,semester"
         );
 
 
@@ -1056,8 +788,7 @@ async function loadAllData(){
 
         allStudents = [];
 
-    }
-    else{
+    }else{
 
         allStudents =
             students || [];
@@ -1065,9 +796,7 @@ async function loadAllData(){
     }
 
 
-    /* ---------------------------------------------
-       LOAD SUBMISSIONS
-    --------------------------------------------- */
+    /* LOAD SUBMISSIONS */
 
     const {
         data: submissions,
@@ -1075,7 +804,7 @@ async function loadAllData(){
     } = await db
         .from("submissions")
         .select("*")
-        .order("id", {
+        .order("id",{
             ascending:false
         });
 
@@ -1086,14 +815,14 @@ async function loadAllData(){
 
         <tr>
 
-            <td
-            colspan="8"
-            class="empty">
+        <td
+        colspan="8"
+        class="empty">
 
-                Error loading submissions:
-                ${submissionError.message}
+        Error loading submissions:
+        ${submissionError.message}
 
-            </td>
+        </td>
 
         </tr>
 
@@ -1107,18 +836,11 @@ async function loadAllData(){
         submissions || [];
 
 
-    /* ---------------------------------------------
-       POPULATE ASSIGNMENT FILTER
-    --------------------------------------------- */
-
     populateAssignmentFilter();
 
-
-    /* ---------------------------------------------
-       DISPLAY TABLE
-    --------------------------------------------- */
-
     displaySubmissions();
+
+    displayStudents();
 
 }
 
@@ -1142,9 +864,9 @@ function populateAssignmentFilter(){
 
     dropdown.innerHTML = `
 
-        <option value="">
-            All Assignments
-        </option>
+    <option value="">
+    All Assignments
+    </option>
 
     `;
 
@@ -1154,14 +876,13 @@ function populateAssignmentFilter(){
 
             dropdown.innerHTML += `
 
-                <option
-                value="${assignment.id}">
+            <option value="${assignment.id}">
 
-                    ${assignment.title}
-                    -
-                    ${assignment.subject}
+            ${assignment.title}
+            -
+            ${assignment.subject}
 
-                </option>
+            </option>
 
             `;
 
@@ -1202,10 +923,6 @@ function displaySubmissions(){
         .toLowerCase();
 
 
-    /* ---------------------------------------------
-       FILTER
-    --------------------------------------------- */
-
     const filtered =
         allSubmissions.filter(
             function(submission){
@@ -1237,10 +954,6 @@ function displaySubmissions(){
             }
         );
 
-
-    /* ---------------------------------------------
-       COUNTS
-    --------------------------------------------- */
 
     const total =
         filtered.length;
@@ -1281,32 +994,21 @@ function displaySubmissions(){
         reviewed;
 
 
-    document.getElementById(
-        "recordInfo"
-    ).innerText =
-        " (" + total + " records)";
-
-
-
-    /* ---------------------------------------------
-       NO SUBMISSIONS
-    --------------------------------------------- */
-
     if(filtered.length === 0){
 
         table.innerHTML = `
 
-            <tr>
+        <tr>
 
-                <td
-                colspan="8"
-                class="empty">
+        <td
+        colspan="8"
+        class="empty">
 
-                    No student submissions found.
+        No student submissions found.
 
-                </td>
+        </td>
 
-            </tr>
+        </tr>
 
         `;
 
@@ -1315,19 +1017,11 @@ function displaySubmissions(){
     }
 
 
-
-    /* ---------------------------------------------
-       BUILD TABLE
-    --------------------------------------------- */
-
     let html = "";
 
 
     filtered.forEach(
         function(submission,index){
-
-
-            /* FIND ASSIGNMENT */
 
             const assignment =
                 allAssignments.find(
@@ -1344,16 +1038,12 @@ function displaySubmissions(){
                 );
 
 
-            /* FIND STUDENT */
-
             const student =
                 allStudents.find(
                     function(s){
 
                         return (
-                            String(
-                                s.reg_no
-                            ) ===
+                            String(s.reg_no) ===
                             String(
                                 submission.reg_no
                             )
@@ -1372,7 +1062,7 @@ function displaySubmissions(){
             const assignmentTitle =
                 assignment
                 ? assignment.title
-                : "Unknown Assignment";
+                : "Unknown";
 
 
             const subject =
@@ -1386,8 +1076,6 @@ function displaySubmissions(){
                 "Reviewed";
 
 
-            /* STATUS */
-
             const statusHTML =
                 isReviewed
 
@@ -1397,7 +1085,7 @@ function displaySubmissions(){
                 <span
                 class="status status-reviewed">
 
-                    Reviewed
+                Reviewed
 
                 </span>
                 `
@@ -1408,14 +1096,11 @@ function displaySubmissions(){
                 <span
                 class="status status-submitted">
 
-                    Submitted
+                Submitted
 
                 </span>
                 `;
 
-
-
-            /* ACTION */
 
             const actionButton =
                 isReviewed
@@ -1427,7 +1112,7 @@ function displaySubmissions(){
                 class="update-btn"
                 onclick="saveMarks(${submission.id})">
 
-                    Update
+                Update
 
                 </button>
                 `
@@ -1439,128 +1124,105 @@ function displaySubmissions(){
                 class="review-btn"
                 onclick="saveMarks(${submission.id})">
 
-                    Review
+                Review
 
                 </button>
                 `;
 
 
-
             html += `
 
-                <tr>
+            <tr>
+
+            <td>
+            ${index + 1}
+            </td>
 
 
-                    <!-- NUMBER -->
+            <td>
 
-                    <td>
-                        ${index + 1}
-                    </td>
+            <span class="reg-number">
 
+            ${submission.reg_no}
 
-                    <!-- REGISTER NUMBER -->
+            </span>
 
-                    <td>
-
-                        <span
-                        class="reg-number">
-
-                            ${submission.reg_no}
-
-                        </span>
-
-                    </td>
+            </td>
 
 
-                    <!-- STUDENT NAME -->
+            <td>
 
-                    <td>
+            <span class="student-name">
 
-                        <span
-                        class="student-name">
+            ${studentName}
 
-                            ${studentName}
+            </span>
 
-                        </span>
-
-                    </td>
+            </td>
 
 
-                    <!-- ASSIGNMENT -->
+            <td>
 
-                    <td>
+            <div class="assignment-title">
 
-                        <div
-                        class="assignment-title">
+            ${assignmentTitle}
 
-                            ${assignmentTitle}
+            </div>
 
-                        </div>
+            <div class="subject">
 
-                        <div
-                        class="subject">
+            ${subject}
 
-                            ${subject}
+            </div>
 
-                        </div>
-
-                    </td>
+            </td>
 
 
-                    <!-- STATUS -->
+            <td>
 
-                    <td>
+            ${statusHTML}
 
-                        ${statusHTML}
-
-                    </td>
+            </td>
 
 
-                    <!-- PDF -->
+            <td>
 
-                    <td>
+            <button
+            class="pdf-btn"
+            onclick="
+            viewPDF('${submission.pdf_url}')
+            ">
 
-                        <button
-                        class="pdf-btn"
-                        onclick="
-                        viewPDF('${submission.pdf_url}')
-                        ">
+            📄 View PDF
 
-                            📄 View PDF
+            </button>
 
-                        </button>
-
-                    </td>
+            </td>
 
 
-                    <!-- MARKS -->
+            <td>
 
-                    <td>
+            <input
+            id="marks_${submission.id}"
+            class="mark-input"
+            type="number"
+            min="0"
+            max="100"
+            value="${
+                submission.marks ?? ""
+            }"
+            placeholder="—">
 
-                        <input
-                        id="marks_${submission.id}"
-                        class="mark-input"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value="${
-                            submission.marks ?? ""
-                        }"
-                        placeholder="—">
-
-                    </td>
+            </td>
 
 
-                    <!-- ACTION -->
+            <td>
 
-                    <td>
+            ${actionButton}
 
-                        ${actionButton}
+            </td>
 
-                    </td>
-
-
-                </tr>
+            </tr>
 
             `;
 
@@ -1588,7 +1250,6 @@ async function viewPDF(filename){
         );
 
         return;
-
     }
 
 
@@ -1612,7 +1273,6 @@ async function viewPDF(filename){
         );
 
         return;
-
     }
 
 
@@ -1637,17 +1297,6 @@ async function saveMarks(id){
         );
 
 
-    if(!input){
-
-        alert(
-            "Marks field not found."
-        );
-
-        return;
-
-    }
-
-
     const marks =
         input.value.trim();
 
@@ -1659,7 +1308,6 @@ async function saveMarks(id){
         );
 
         return;
-
     }
 
 
@@ -1673,7 +1321,6 @@ async function saveMarks(id){
         );
 
         return;
-
     }
 
 
@@ -1704,7 +1351,6 @@ async function saveMarks(id){
         );
 
         return;
-
     }
 
 
@@ -1714,6 +1360,203 @@ async function saveMarks(id){
 
 
     await loadAllData();
+
+}
+
+
+
+/* =====================================================
+   STUDENT MANAGEMENT
+===================================================== */
+
+function displayStudents(){
+
+    const table =
+        document.getElementById(
+            "studentTable"
+        );
+
+
+    const search =
+        document.getElementById(
+            "studentSearch"
+        ).value
+        .trim()
+        .toLowerCase();
+
+
+    const filtered =
+        allStudents.filter(
+            function(student){
+
+                const reg =
+                    String(
+                        student.reg_no || ""
+                    ).toLowerCase();
+
+
+                const name =
+                    String(
+                        student.name || ""
+                    ).toLowerCase();
+
+
+                return (
+                    reg.includes(search) ||
+                    name.includes(search)
+                );
+
+            }
+        );
+
+
+    if(filtered.length === 0){
+
+        table.innerHTML = `
+
+        <tr>
+
+        <td
+        colspan="6"
+        class="empty">
+
+        No students found.
+
+        </td>
+
+        </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    let html = "";
+
+
+    filtered.forEach(
+        function(student,index){
+
+            const semester =
+                student.semester
+                ? "Semester " +
+                  student.semester
+                : "-";
+
+
+            html += `
+
+            <tr>
+
+            <td>
+            ${index + 1}
+            </td>
+
+
+            <td>
+
+            <span class="reg-number">
+
+            ${student.reg_no}
+
+            </span>
+
+            </td>
+
+
+            <td>
+
+            <span class="student-name">
+
+            ${student.name}
+
+            </span>
+
+            </td>
+
+
+            <td>
+
+            ${student.email}
+
+            </td>
+
+
+            <td>
+
+            ${semester}
+
+            </td>
+
+
+            <td>
+
+            <button
+            disabled
+            style="
+            background:#94a3b8;
+            cursor:not-allowed;
+            ">
+
+            Edit / Delete
+            <br>
+            <small>
+            Coming Next
+            </small>
+
+            </button>
+
+            </td>
+
+            </tr>
+
+            `;
+
+        }
+    );
+
+
+    table.innerHTML =
+        html;
+
+}
+
+
+
+/* =====================================================
+   REFRESH STUDENTS
+===================================================== */
+
+async function loadStudentsManagement(){
+
+    const {
+        data,
+        error
+    } = await db
+        .from("students")
+        .select(
+            "reg_no,name,email,semester"
+        );
+
+
+    if(error){
+
+        alert(
+            "Unable to load students:\n\n" +
+            error.message
+        );
+
+        return;
+    }
+
+
+    allStudents =
+        data || [];
+
+
+    displayStudents();
 
 }
 
