@@ -3,52 +3,128 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Teacher Portal</title>
 
 <link rel="stylesheet" href="style.css">
 
 <style>
+
 body{
     background:#eef4ff;
     font-family:Arial,sans-serif;
     padding:30px;
 }
-.card{
-    max-width:600px;
+
+.container{
+    max-width:1000px;
     margin:auto;
+}
+
+.card{
     background:white;
     padding:25px;
+    margin-bottom:25px;
     border-radius:15px;
     box-shadow:0 8px 20px rgba(0,0,0,.1);
 }
+
 h2{
     text-align:center;
     color:#2563eb;
+    margin-bottom:25px;
 }
+
+h3{
+    color:#1e3a8a;
+}
+
 input,select{
     width:100%;
     padding:12px;
-    margin:10px 0;
+    margin:8px 0 15px;
     border:1px solid #ccc;
     border-radius:8px;
+    box-sizing:border-box;
 }
+
 button{
-    width:100%;
-    padding:12px;
+    padding:12px 18px;
     background:#2563eb;
     color:white;
     border:none;
     border-radius:8px;
-    font-size:16px;
+    font-size:15px;
     cursor:pointer;
 }
+
 button:hover{
     background:#1d4ed8;
 }
+
+.refresh{
+    background:#059669;
+    margin-bottom:15px;
+}
+
+.refresh:hover{
+    background:#047857;
+}
+
+.submission{
+    border:1px solid #ddd;
+    border-radius:12px;
+    padding:20px;
+    margin-top:15px;
+    background:#fafafa;
+}
+
+.info{
+    margin:8px 0;
+}
+
+.status{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:20px;
+    background:#fef3c7;
+    color:#92400e;
+    font-weight:bold;
+}
+
+.reviewed{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.view-btn{
+    background:#7c3aed;
+    margin:8px 0;
+}
+
+.view-btn:hover{
+    background:#6d28d9;
+}
+
+.mark-btn{
+    width:100%;
+    margin-top:8px;
+}
+
+.empty{
+    text-align:center;
+    color:#777;
+    padding:20px;
+}
+
 </style>
 </head>
 
 <body>
+
+<div class="container">
+
+<!-- CREATE ASSIGNMENT -->
 
 <div class="card">
 
@@ -59,26 +135,284 @@ button:hover{
 <input id="subject" placeholder="Subject Name">
 
 <select id="semester">
+
 <option value="">Select Semester</option>
+
 <option value="1">I Semester</option>
 <option value="2">II Semester</option>
 <option value="3">III Semester</option>
 <option value="4">IV Semester</option>
 <option value="5">V Semester</option>
 <option value="6">VI Semester</option>
+
 </select>
 
 <label>Due Date</label>
+
 <input id="due" type="date">
 
-<button onclick="createAssignment()">Publish Assignment</button>
+<button onclick="createAssignment()">
+Publish Assignment
+</button>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
+
+<!-- STUDENT SUBMISSIONS -->
+
+<div class="card">
+
+<h2>Student Submissions</h2>
+
+<button class="refresh" onclick="loadSubmissions()">
+Refresh Submissions
+</button>
+
+<div id="submissions">
+Loading submissions...
+</div>
+
+</div>
+
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="teacher.js"></script>
+
+<script src="app.js"></script>
+
+
+<script>
+
+/* LOAD STUDENT SUBMISSIONS */
+
+async function loadSubmissions(){
+
+    const box = document.getElementById("submissions");
+
+    box.innerHTML = "Loading submissions...";
+
+    /* Get assignments */
+
+    const { data: assignments, error: assignmentError } =
+        await db
+        .from("assignments")
+        .select("*");
+
+    if(assignmentError){
+
+        box.innerHTML =
+            "Error loading assignments: " +
+            assignmentError.message;
+
+        return;
+    }
+
+
+    /* Get submissions */
+
+    const { data: submissions, error: submissionError } =
+        await db
+        .from("submissions")
+        .select("*")
+        .order("id", { ascending:false });
+
+    if(submissionError){
+
+        box.innerHTML =
+            "Error loading submissions: " +
+            submissionError.message;
+
+        return;
+    }
+
+
+    if(!submissions || submissions.length === 0){
+
+        box.innerHTML =
+            '<div class="empty">No student submissions yet.</div>';
+
+        return;
+    }
+
+
+    let html = "";
+
+
+    submissions.forEach(function(submission){
+
+        const assignment =
+            assignments.find(
+                a => String(a.id) === String(submission.assignment_id)
+            );
+
+
+        const assignmentTitle =
+            assignment ? assignment.title : "Unknown Assignment";
+
+        const subject =
+            assignment ? assignment.subject : "Unknown Subject";
+
+
+        const statusClass =
+            submission.status === "Reviewed"
+            ? "status reviewed"
+            : "status";
+
+
+        html += `
+
+        <div class="submission">
+
+            <h3>${assignmentTitle}</h3>
+
+            <div class="info">
+                <b>Subject:</b> ${subject}
+            </div>
+
+            <div class="info">
+                <b>Register No:</b> ${submission.reg_no}
+            </div>
+
+            <div class="info">
+                <b>Status:</b>
+                <span class="${statusClass}">
+                    ${submission.status || "Submitted"}
+                </span>
+            </div>
+
+            <div class="info">
+                <b>Current Marks:</b>
+                ${submission.marks ?? "Not evaluated"}
+            </div>
+
+            <button
+                class="view-btn"
+                onclick="viewPDF('${submission.pdf_url}')">
+                View Submitted PDF
+            </button>
+
+            <label>
+                <b>Enter Marks</b>
+            </label>
+
+            <input
+                type="number"
+                id="marks_${submission.id}"
+                min="0"
+                max="100"
+                placeholder="Enter marks">
+
+            <button
+                class="mark-btn"
+                onclick="saveMarks(${submission.id})">
+
+                Save Marks & Complete Review
+
+            </button>
+
+        </div>
+
+        `;
+
+    });
+
+
+    box.innerHTML = html;
+
+}
+
+
+/* VIEW PDF */
+
+async function viewPDF(filename){
+
+    const { data, error } =
+        await db.storage
+        .from("assignments")
+        .createSignedUrl(filename, 3600);
+
+    if(error){
+
+        alert(
+            "Unable to open PDF:\n\n" +
+            error.message
+        );
+
+        return;
+    }
+
+    window.open(data.signedUrl, "_blank");
+
+}
+
+
+/* SAVE MARKS */
+
+async function saveMarks(id){
+
+    const marksInput =
+        document.getElementById("marks_" + id);
+
+    const marks =
+        marksInput.value.trim();
+
+
+    if(marks === ""){
+
+        alert("Please enter marks.");
+
+        return;
+    }
+
+
+    if(Number(marks) < 0 || Number(marks) > 100){
+
+        alert("Marks should be between 0 and 100.");
+
+        return;
+    }
+
+
+    const { error } =
+        await db
+        .from("submissions")
+        .update({
+
+            marks: Number(marks),
+
+            status: "Reviewed"
+
+        })
+        .eq("id", id);
+
+
+    if(error){
+
+        alert(
+            "Unable to save marks:\n\n" +
+            error.message
+        );
+
+        return;
+    }
+
+
+    alert(
+        "Review completed successfully!"
+    );
+
+
+    loadSubmissions();
+
+}
+
+
+/* LOAD SUBMISSIONS WHEN PAGE OPENS */
+
+loadSubmissions();
+
+</script>
+
 </body>
 </html>
