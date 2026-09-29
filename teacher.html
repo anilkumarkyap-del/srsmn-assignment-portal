@@ -127,6 +127,15 @@ button:hover{
     font-size:13px;
 }
 
+.edit-btn{
+    background:#2563eb;
+    padding:8px 14px;
+}
+
+.edit-btn:hover{
+    background:#1d4ed8;
+}
+
 .filter-area{
     display:grid;
     grid-template-columns:1fr 1fr auto;
@@ -267,6 +276,108 @@ tbody tr:hover td{
     align-items:end;
     margin-bottom:20px;
 }
+
+
+/* =========================================
+   EDIT STUDENT POPUP
+========================================= */
+
+.modal{
+    display:none;
+
+    position:fixed;
+
+    z-index:1000;
+
+    left:0;
+    top:0;
+
+    width:100%;
+    height:100%;
+
+    background:rgba(0,0,0,.55);
+
+    align-items:center;
+    justify-content:center;
+
+    padding:20px;
+}
+
+.modal-box{
+    background:white;
+
+    width:100%;
+    max-width:500px;
+
+    border-radius:15px;
+
+    padding:25px;
+
+    box-shadow:0 10px 35px rgba(0,0,0,.3);
+}
+
+.modal-box h2{
+    margin-bottom:20px;
+}
+
+.modal-group{
+    margin-bottom:15px;
+}
+
+.modal-group label{
+    display:block;
+
+    font-weight:bold;
+
+    margin-bottom:7px;
+
+    color:#374151;
+}
+
+.modal-group input,
+.modal-group select{
+    width:100%;
+}
+
+.readonly{
+    background:#f1f5f9;
+    color:#64748b;
+}
+
+.modal-buttons{
+    display:flex;
+
+    gap:10px;
+
+    margin-top:20px;
+}
+
+.modal-buttons button{
+    flex:1;
+}
+
+.cancel-btn{
+    background:#64748b;
+}
+
+.cancel-btn:hover{
+    background:#475569;
+}
+
+.save-btn{
+    background:#059669;
+}
+
+.save-btn:hover{
+    background:#047857;
+}
+
+.note{
+    font-size:12px;
+    color:#64748b;
+    margin-top:5px;
+}
+
 
 @media(max-width:900px){
 
@@ -675,6 +786,130 @@ Loading students...
 
 
 <!-- =====================================================
+     EDIT STUDENT MODAL
+===================================================== -->
+
+<div
+id="editModal"
+class="modal">
+
+<div class="modal-box">
+
+<h2>
+Edit Student
+</h2>
+
+
+<div class="modal-group">
+
+<label>
+Register Number
+</label>
+
+<input
+id="editReg"
+type="text">
+
+</div>
+
+
+<div class="modal-group">
+
+<label>
+Student Name
+</label>
+
+<input
+id="editName"
+type="text">
+
+</div>
+
+
+<div class="modal-group">
+
+<label>
+Email
+</label>
+
+<input
+id="editEmail"
+type="email"
+class="readonly"
+readonly>
+
+<div class="note">
+Email is kept read-only because it is connected to the student's login account.
+</div>
+
+</div>
+
+
+<div class="modal-group">
+
+<label>
+Semester
+</label>
+
+<select id="editSemester">
+
+<option value="1">
+I Semester
+</option>
+
+<option value="2">
+II Semester
+</option>
+
+<option value="3">
+III Semester
+</option>
+
+<option value="4">
+IV Semester
+</option>
+
+<option value="5">
+V Semester
+</option>
+
+<option value="6">
+VI Semester
+</option>
+
+</select>
+
+</div>
+
+
+<div class="modal-buttons">
+
+<button
+class="cancel-btn"
+onclick="closeEditModal()">
+
+Cancel
+
+</button>
+
+
+<button
+class="save-btn"
+onclick="saveStudentEdit()">
+
+Save Changes
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- =====================================================
      SUPABASE
 ===================================================== -->
 
@@ -696,10 +931,12 @@ let allAssignments = [];
 
 let allStudents = [];
 
+let editingOriginalReg = "";
+
 
 
 /* =====================================================
-   LOAD ASSIGNMENTS + STUDENTS + SUBMISSIONS
+   LOAD ALL DATA
 ===================================================== */
 
 async function loadAllData(){
@@ -712,22 +949,22 @@ async function loadAllData(){
 
     table.innerHTML = `
 
-        <tr>
+    <tr>
 
-        <td
-        colspan="8"
-        class="empty">
+    <td
+    colspan="8"
+    class="empty">
 
-        Loading submissions...
+    Loading submissions...
 
-        </td>
+    </td>
 
-        </tr>
+    </tr>
 
     `;
 
 
-    /* LOAD ASSIGNMENTS */
+    /* ASSIGNMENTS */
 
     const {
         data: assignments,
@@ -742,22 +979,10 @@ async function loadAllData(){
 
     if(assignmentError){
 
-        table.innerHTML = `
-
-        <tr>
-
-        <td
-        colspan="8"
-        class="empty">
-
-        Error loading assignments:
-        ${assignmentError.message}
-
-        </td>
-
-        </tr>
-
-        `;
+        alert(
+            "Unable to load assignments:\n\n" +
+            assignmentError.message
+        );
 
         return;
     }
@@ -767,7 +992,7 @@ async function loadAllData(){
         assignments || [];
 
 
-    /* LOAD STUDENTS */
+    /* STUDENTS */
 
     const {
         data: students,
@@ -796,7 +1021,7 @@ async function loadAllData(){
     }
 
 
-    /* LOAD SUBMISSIONS */
+    /* SUBMISSIONS */
 
     const {
         data: submissions,
@@ -811,22 +1036,10 @@ async function loadAllData(){
 
     if(submissionError){
 
-        table.innerHTML = `
-
-        <tr>
-
-        <td
-        colspan="8"
-        class="empty">
-
-        Error loading submissions:
-        ${submissionError.message}
-
-        </td>
-
-        </tr>
-
-        `;
+        alert(
+            "Unable to load submissions:\n\n" +
+            submissionError.message
+        );
 
         return;
     }
@@ -1138,7 +1351,6 @@ function displaySubmissions(){
             ${index + 1}
             </td>
 
-
             <td>
 
             <span class="reg-number">
@@ -1149,7 +1361,6 @@ function displaySubmissions(){
 
             </td>
 
-
             <td>
 
             <span class="student-name">
@@ -1159,7 +1370,6 @@ function displaySubmissions(){
             </span>
 
             </td>
-
 
             <td>
 
@@ -1177,13 +1387,11 @@ function displaySubmissions(){
 
             </td>
 
-
             <td>
 
             ${statusHTML}
 
             </td>
-
 
             <td>
 
@@ -1199,7 +1407,6 @@ function displaySubmissions(){
 
             </td>
 
-
             <td>
 
             <input
@@ -1214,7 +1421,6 @@ function displaySubmissions(){
             placeholder="—">
 
             </td>
-
 
             <td>
 
@@ -1366,7 +1572,7 @@ async function saveMarks(id){
 
 
 /* =====================================================
-   STUDENT MANAGEMENT
+   DISPLAY STUDENTS
 ===================================================== */
 
 function displayStudents(){
@@ -1494,17 +1700,10 @@ function displayStudents(){
             <td>
 
             <button
-            disabled
-            style="
-            background:#94a3b8;
-            cursor:not-allowed;
-            ">
+            class="edit-btn"
+            onclick='openEditModal(${JSON.stringify(student)})'>
 
-            Edit / Delete
-            <br>
-            <small>
-            Coming Next
-            </small>
+            ✏️ Edit
 
             </button>
 
@@ -1520,6 +1719,231 @@ function displayStudents(){
 
     table.innerHTML =
         html;
+
+}
+
+
+
+/* =====================================================
+   OPEN EDIT MODAL
+===================================================== */
+
+function openEditModal(student){
+
+    editingOriginalReg =
+        student.reg_no;
+
+
+    document.getElementById(
+        "editReg"
+    ).value =
+        student.reg_no;
+
+
+    document.getElementById(
+        "editName"
+    ).value =
+        student.name;
+
+
+    document.getElementById(
+        "editEmail"
+    ).value =
+        student.email;
+
+
+    document.getElementById(
+        "editSemester"
+    ).value =
+        String(
+            student.semester
+        );
+
+
+    document.getElementById(
+        "editModal"
+    ).style.display =
+        "flex";
+
+}
+
+
+
+/* =====================================================
+   CLOSE EDIT MODAL
+===================================================== */
+
+function closeEditModal(){
+
+    document.getElementById(
+        "editModal"
+    ).style.display =
+        "none";
+
+}
+
+
+
+/* =====================================================
+   SAVE STUDENT EDIT
+===================================================== */
+
+async function saveStudentEdit(){
+
+    const newReg =
+        document.getElementById(
+            "editReg"
+        ).value.trim();
+
+
+    const newName =
+        document.getElementById(
+            "editName"
+        ).value.trim();
+
+
+    const newSemester =
+        document.getElementById(
+            "editSemester"
+        ).value;
+
+
+    if(
+        !newReg ||
+        !newName ||
+        !newSemester
+    ){
+
+        alert(
+            "Please fill all editable fields."
+        );
+
+        return;
+    }
+
+
+    /* -----------------------------------------
+       CHECK DUPLICATE REGISTER NUMBER
+    ----------------------------------------- */
+
+    const duplicate =
+        allStudents.find(
+            function(student){
+
+                return (
+                    String(
+                        student.reg_no
+                    ).toLowerCase() ===
+                    newReg.toLowerCase()
+                    &&
+                    String(
+                        student.reg_no
+                    ) !==
+                    String(
+                        editingOriginalReg
+                    )
+                );
+
+            }
+        );
+
+
+    if(duplicate){
+
+        alert(
+            "This Register Number already exists."
+        );
+
+        return;
+    }
+
+
+    /* -----------------------------------------
+       UPDATE STUDENT TABLE
+    ----------------------------------------- */
+
+    const {
+        error
+    } = await db
+        .from("students")
+        .update({
+
+            reg_no:
+                newReg,
+
+            name:
+                newName,
+
+            semester:
+                Number(
+                    newSemester
+                )
+
+        })
+        .eq(
+            "reg_no",
+            editingOriginalReg
+        );
+
+
+    if(error){
+
+        alert(
+            "Unable to update student:\n\n" +
+            error.message
+        );
+
+        return;
+    }
+
+
+    /* -----------------------------------------
+       UPDATE EXISTING SUBMISSIONS
+       IF REGISTER NUMBER CHANGED
+    ----------------------------------------- */
+
+    if(
+        String(newReg) !==
+        String(editingOriginalReg)
+    ){
+
+        const {
+            error: submissionError
+        } = await db
+            .from("submissions")
+            .update({
+
+                reg_no:
+                    newReg
+
+            })
+            .eq(
+                "reg_no",
+                editingOriginalReg
+            );
+
+
+        if(submissionError){
+
+            alert(
+                "Student updated, but existing submissions could not be updated:\n\n" +
+                submissionError.message
+            );
+
+        }
+
+    }
+
+
+    alert(
+        "Student details updated successfully!"
+    );
+
+
+    closeEditModal();
+
+
+    await loadAllData();
 
 }
 
@@ -1559,6 +1983,29 @@ async function loadStudentsManagement(){
     displayStudents();
 
 }
+
+
+
+/* =====================================================
+   CLOSE MODAL WHEN CLICKING OUTSIDE
+===================================================== */
+
+window.onclick =
+    function(event){
+
+        const modal =
+            document.getElementById(
+                "editModal"
+            );
+
+
+        if(event.target === modal){
+
+            closeEditModal();
+
+        }
+
+    };
 
 
 
