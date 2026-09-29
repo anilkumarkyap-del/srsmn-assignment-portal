@@ -132,10 +132,6 @@ button:hover{
     padding:8px 14px;
 }
 
-.edit-btn:hover{
-    background:#1d4ed8;
-}
-
 .filter-area{
     display:grid;
     grid-template-columns:1fr 1fr auto;
@@ -277,42 +273,28 @@ tbody tr:hover td{
     margin-bottom:20px;
 }
 
-
-/* =========================================
-   EDIT STUDENT POPUP
-========================================= */
+/* EDIT STUDENT MODAL */
 
 .modal{
     display:none;
-
     position:fixed;
-
     z-index:1000;
-
     left:0;
     top:0;
-
     width:100%;
     height:100%;
-
     background:rgba(0,0,0,.55);
-
     align-items:center;
     justify-content:center;
-
     padding:20px;
 }
 
 .modal-box{
     background:white;
-
     width:100%;
     max-width:500px;
-
     border-radius:15px;
-
     padding:25px;
-
     box-shadow:0 10px 35px rgba(0,0,0,.3);
 }
 
@@ -326,11 +308,8 @@ tbody tr:hover td{
 
 .modal-group label{
     display:block;
-
     font-weight:bold;
-
     margin-bottom:7px;
-
     color:#374151;
 }
 
@@ -346,9 +325,7 @@ tbody tr:hover td{
 
 .modal-buttons{
     display:flex;
-
     gap:10px;
-
     margin-top:20px;
 }
 
@@ -360,16 +337,8 @@ tbody tr:hover td{
     background:#64748b;
 }
 
-.cancel-btn:hover{
-    background:#475569;
-}
-
 .save-btn{
     background:#059669;
-}
-
-.save-btn:hover{
-    background:#047857;
 }
 
 .note{
@@ -377,7 +346,6 @@ tbody tr:hover td{
     color:#64748b;
     margin-top:5px;
 }
-
 
 @media(max-width:900px){
 
@@ -404,23 +372,17 @@ tbody tr:hover td{
     .card{
         padding:15px;
     }
-
 }
 
 </style>
 
 </head>
 
-
 <body>
-
 
 <div class="container">
 
-
-<!-- =====================================================
-     HEADER
-===================================================== -->
+<!-- HEADER -->
 
 <div class="card">
 
@@ -437,10 +399,7 @@ Assignment Management & Student Submissions
 </div>
 
 
-
-<!-- =====================================================
-     CREATE ASSIGNMENT
-===================================================== -->
+<!-- CREATE ASSIGNMENT -->
 
 <div class="card">
 
@@ -448,12 +407,9 @@ Assignment Management & Student Submissions
 
 <div class="form-grid">
 
-
 <div class="form-group">
 
-<label>
-Assignment Title
-</label>
+<label>Assignment Title</label>
 
 <input
 id="title"
@@ -464,9 +420,7 @@ placeholder="Example: Assignment 1">
 
 <div class="form-group">
 
-<label>
-Subject
-</label>
+<label>Subject</label>
 
 <input
 id="subject"
@@ -477,15 +431,11 @@ placeholder="Example: IFRS">
 
 <div class="form-group">
 
-<label>
-Semester
-</label>
+<label>Semester</label>
 
 <select id="semester">
 
-<option value="">
-Select Semester
-</option>
+<option value="">Select Semester</option>
 
 <option value="1">I Semester</option>
 <option value="2">II Semester</option>
@@ -501,16 +451,13 @@ Select Semester
 
 <div class="form-group">
 
-<label>
-Due Date
-</label>
+<label>Due Date</label>
 
 <input
 id="due"
 type="date">
 
 </div>
-
 
 </div>
 
@@ -527,32 +474,23 @@ Publish Assignment
 </div>
 
 
-
-<!-- =====================================================
-     STUDENT SUBMISSIONS
-===================================================== -->
+<!-- STUDENT SUBMISSIONS -->
 
 <div class="card">
 
 <h2>Student Submissions</h2>
 
-
 <div class="filter-area">
-
 
 <div class="filter-group">
 
-<label>
-Select Assignment
-</label>
+<label>Select Assignment</label>
 
 <select
 id="assignmentFilter"
 onchange="displaySubmissions()">
 
-<option value="">
-All Assignments
-</option>
+<option value="">All Assignments</option>
 
 </select>
 
@@ -561,9 +499,7 @@ All Assignments
 
 <div class="filter-group">
 
-<label>
-Search Register Number
-</label>
+<label>Search Register Number</label>
 
 <input
 id="searchReg"
@@ -585,13 +521,10 @@ onclick="loadAllData()">
 
 </div>
 
-
 </div>
 
 
-
 <div class="stats">
-
 
 <div class="stat-box">
 
@@ -602,9 +535,7 @@ Total Submissions
 <span
 class="stat-number"
 id="totalCount">
-
 0
-
 </span>
 
 </div>
@@ -619,9 +550,7 @@ Pending Review
 <span
 class="stat-number pending-number"
 id="pendingCount">
-
 0
-
 </span>
 
 </div>
@@ -636,16 +565,12 @@ Reviewed
 <span
 class="stat-number reviewed-number"
 id="reviewedCount">
-
 0
-
 </span>
 
 </div>
 
-
 </div>
-
 
 
 <div class="table-container">
@@ -668,7 +593,6 @@ id="reviewedCount">
 </tr>
 
 </thead>
-
 
 <tbody id="submissionTable">
 
@@ -693,24 +617,17 @@ Loading submissions...
 </div>
 
 
-
-<!-- =====================================================
-     STUDENT MANAGEMENT
-===================================================== -->
+<!-- STUDENT MANAGEMENT -->
 
 <div class="card">
 
 <h2>Student Management</h2>
 
-
 <div class="student-filter">
-
 
 <div class="filter-group">
 
-<label>
-Search Student
-</label>
+<label>Search Student</label>
 
 <input
 id="studentSearch"
@@ -732,9 +649,7 @@ onclick="loadStudentsManagement()">
 
 </div>
 
-
 </div>
-
 
 
 <div class="table-container">
@@ -755,7 +670,6 @@ onclick="loadStudentsManagement()">
 </tr>
 
 </thead>
-
 
 <tbody id="studentTable">
 
@@ -779,15 +693,10 @@ Loading students...
 
 </div>
 
-
-
 </div>
 
 
-
-<!-- =====================================================
-     EDIT STUDENT MODAL
-===================================================== -->
+<!-- EDIT STUDENT MODAL -->
 
 <div
 id="editModal"
@@ -795,16 +704,12 @@ class="modal">
 
 <div class="modal-box">
 
-<h2>
-Edit Student
-</h2>
+<h2>Edit Student</h2>
 
 
 <div class="modal-group">
 
-<label>
-Register Number
-</label>
+<label>Register Number</label>
 
 <input
 id="editReg"
@@ -815,9 +720,7 @@ type="text">
 
 <div class="modal-group">
 
-<label>
-Student Name
-</label>
+<label>Student Name</label>
 
 <input
 id="editName"
@@ -828,9 +731,7 @@ type="text">
 
 <div class="modal-group">
 
-<label>
-Email
-</label>
+<label>Email</label>
 
 <input
 id="editEmail"
@@ -839,7 +740,7 @@ class="readonly"
 readonly>
 
 <div class="note">
-Email is kept read-only because it is connected to the student's login account.
+Email will be enabled after we connect the secure email-update function.
 </div>
 
 </div>
@@ -847,35 +748,16 @@ Email is kept read-only because it is connected to the student's login account.
 
 <div class="modal-group">
 
-<label>
-Semester
-</label>
+<label>Semester</label>
 
 <select id="editSemester">
 
-<option value="1">
-I Semester
-</option>
-
-<option value="2">
-II Semester
-</option>
-
-<option value="3">
-III Semester
-</option>
-
-<option value="4">
-IV Semester
-</option>
-
-<option value="5">
-V Semester
-</option>
-
-<option value="6">
-VI Semester
-</option>
+<option value="1">I Semester</option>
+<option value="2">II Semester</option>
+<option value="3">III Semester</option>
+<option value="4">IV Semester</option>
+<option value="5">V Semester</option>
+<option value="6">VI Semester</option>
 
 </select>
 
@@ -908,41 +790,54 @@ Save Changes
 </div>
 
 
-
-<!-- =====================================================
-     SUPABASE
-===================================================== -->
+<!-- SUPABASE -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script src="app.js"></script>
+
+
 <script>
-async function checkTeacherAccess() {
+
+/* =====================================================
+   TEACHER ACCESS CHECK
+===================================================== */
+
+async function checkTeacherAccess(){
 
     const {
         data: { session }
     } = await db.auth.getSession();
 
-    if (!session) {
-        window.location.href = "teacher-login.html";
-        return;
+    if(!session){
+
+        window.location.href =
+            "teacher-login.html";
+
+        return false;
     }
 
-    if (session.user.email.toLowerCase() !== "anilkumarky.ap@gmail.com") {
+    const email =
+        session.user.email
+        ? session.user.email.toLowerCase()
+        : "";
+
+    if(email !== "anilkumarky.ap@gmail.com"){
 
         await db.auth.signOut();
 
-        alert("Access denied.");
+        alert(
+            "Access denied. Teacher account required."
+        );
 
-        window.location.href = "teacher-login.html";
-        return;
+        window.location.href =
+            "teacher-login.html";
+
+        return false;
     }
+
+    return true;
 }
-
-checkTeacherAccess();
-</script>
-
-<script>
 
 
 /* =====================================================
@@ -958,7 +853,6 @@ let allStudents = [];
 let editingOriginalReg = "";
 
 
-
 /* =====================================================
    LOAD ALL DATA
 ===================================================== */
@@ -966,10 +860,7 @@ let editingOriginalReg = "";
 async function loadAllData(){
 
     const table =
-        document.getElementById(
-            "submissionTable"
-        );
-
+        document.getElementById("submissionTable");
 
     table.innerHTML = `
 
@@ -1082,7 +973,6 @@ async function loadAllData(){
 }
 
 
-
 /* =====================================================
    ASSIGNMENT FILTER
 ===================================================== */
@@ -1094,10 +984,8 @@ function populateAssignmentFilter(){
             "assignmentFilter"
         );
 
-
     const oldValue =
         dropdown.value;
-
 
     dropdown.innerHTML = `
 
@@ -1131,7 +1019,6 @@ function populateAssignmentFilter(){
         oldValue;
 
 }
-
 
 
 /* =====================================================
@@ -1250,7 +1137,6 @@ function displaySubmissions(){
         `;
 
         return;
-
     }
 
 
@@ -1378,9 +1264,7 @@ function displaySubmissions(){
             <td>
 
             <span class="reg-number">
-
             ${submission.reg_no}
-
             </span>
 
             </td>
@@ -1388,9 +1272,7 @@ function displaySubmissions(){
             <td>
 
             <span class="student-name">
-
             ${studentName}
-
             </span>
 
             </td>
@@ -1398,32 +1280,24 @@ function displaySubmissions(){
             <td>
 
             <div class="assignment-title">
-
             ${assignmentTitle}
-
             </div>
 
             <div class="subject">
-
             ${subject}
-
             </div>
 
             </td>
 
             <td>
-
             ${statusHTML}
-
             </td>
 
             <td>
 
             <button
             class="pdf-btn"
-            onclick="
-            viewPDF('${submission.pdf_url}')
-            ">
+            onclick="viewPDF('${submission.pdf_url}')">
 
             📄 View PDF
 
@@ -1447,9 +1321,7 @@ function displaySubmissions(){
             </td>
 
             <td>
-
             ${actionButton}
-
             </td>
 
             </tr>
@@ -1464,7 +1336,6 @@ function displaySubmissions(){
         html;
 
 }
-
 
 
 /* =====================================================
@@ -1512,7 +1383,6 @@ async function viewPDF(filename){
     );
 
 }
-
 
 
 /* =====================================================
@@ -1594,7 +1464,6 @@ async function saveMarks(id){
 }
 
 
-
 /* =====================================================
    DISPLAY STUDENTS
 ===================================================== */
@@ -1659,7 +1528,6 @@ function displayStudents(){
         `;
 
         return;
-
     }
 
 
@@ -1684,42 +1552,29 @@ function displayStudents(){
             ${index + 1}
             </td>
 
-
             <td>
 
             <span class="reg-number">
-
             ${student.reg_no}
-
             </span>
 
             </td>
-
 
             <td>
 
             <span class="student-name">
-
             ${student.name}
-
             </span>
 
             </td>
 
-
             <td>
-
             ${student.email}
-
             </td>
-
 
             <td>
-
             ${semester}
-
             </td>
-
 
             <td>
 
@@ -1745,7 +1600,6 @@ function displayStudents(){
         html;
 
 }
-
 
 
 /* =====================================================
@@ -1792,7 +1646,6 @@ function openEditModal(student){
 }
 
 
-
 /* =====================================================
    CLOSE EDIT MODAL
 ===================================================== */
@@ -1805,7 +1658,6 @@ function closeEditModal(){
         "none";
 
 }
-
 
 
 /* =====================================================
@@ -1846,9 +1698,7 @@ async function saveStudentEdit(){
     }
 
 
-    /* -----------------------------------------
-       CHECK DUPLICATE REGISTER NUMBER
-    ----------------------------------------- */
+    /* CHECK DUPLICATE REGISTER NUMBER */
 
     const duplicate =
         allStudents.find(
@@ -1859,7 +1709,9 @@ async function saveStudentEdit(){
                         student.reg_no
                     ).toLowerCase() ===
                     newReg.toLowerCase()
+
                     &&
+
                     String(
                         student.reg_no
                     ) !==
@@ -1882,9 +1734,7 @@ async function saveStudentEdit(){
     }
 
 
-    /* -----------------------------------------
-       UPDATE STUDENT TABLE
-    ----------------------------------------- */
+    /* UPDATE STUDENT TABLE */
 
     const {
         error
@@ -1921,10 +1771,8 @@ async function saveStudentEdit(){
     }
 
 
-    /* -----------------------------------------
-       UPDATE EXISTING SUBMISSIONS
-       IF REGISTER NUMBER CHANGED
-    ----------------------------------------- */
+    /* UPDATE EXISTING SUBMISSIONS
+       IF REGISTER NUMBER CHANGED */
 
     if(
         String(newReg) !==
@@ -1966,11 +1814,9 @@ async function saveStudentEdit(){
 
     closeEditModal();
 
-
     await loadAllData();
 
 }
-
 
 
 /* =====================================================
@@ -2009,7 +1855,6 @@ async function loadStudentsManagement(){
 }
 
 
-
 /* =====================================================
    CLOSE MODAL WHEN CLICKING OUTSIDE
 ===================================================== */
@@ -2032,15 +1877,23 @@ window.onclick =
     };
 
 
-
 /* =====================================================
-   INITIAL LOAD
+   START PORTAL ONLY AFTER TEACHER IS VERIFIED
 ===================================================== */
 
-loadAllData();
+checkTeacherAccess().then(
+    function(allowed){
+
+        if(allowed){
+
+            loadAllData();
+
+        }
+
+    }
+);
 
 </script>
-
 
 </body>
 
