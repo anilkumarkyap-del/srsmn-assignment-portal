@@ -735,12 +735,12 @@ type="text">
 
 <input
 id="editEmail"
-type="email"
-class="readonly"
-readonly>
+type="email">
 
 <div class="note">
-Email will be enabled after we connect the secure email-update function.
+Teacher can correct the student's login email if it was entered incorrectly.
+</div>
+
 </div>
 
 </div>
@@ -1671,108 +1671,161 @@ async function saveStudentEdit(){
             "editReg"
         ).value.trim();
 
-
     const newName =
         document.getElementById(
             "editName"
         ).value.trim();
 
+    const newEmail =
+        document.getElementById(
+            "editEmail"
+        ).value.trim()
+        .toLowerCase();
 
     const newSemester =
         document.getElementById(
             "editSemester"
         ).value;
 
-
     if(
         !newReg ||
         !newName ||
+        !newEmail ||
         !newSemester
     ){
-
-        alert(
-            "Please fill all editable fields."
-        );
-
+        alert("Please fill all fields.");
         return;
     }
 
+    const emailPattern =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    /* CHECK DUPLICATE REGISTER NUMBER */
+    if(!emailPattern.test(newEmail)){
+        alert("Please enter a valid email address.");
+        return;
+    }
 
     const duplicate =
         allStudents.find(
             function(student){
-
                 return (
-                    String(
-                        student.reg_no
-                    ).toLowerCase() ===
+                    String(student.reg_no).toLowerCase() ===
                     newReg.toLowerCase()
-
                     &&
-
-                    String(
-                        student.reg_no
-                    ) !==
-                    String(
-                        editingOriginalReg
-                    )
+                    String(student.reg_no) !==
+                    String(editingOriginalReg)
                 );
-
             }
         );
 
-
     if(duplicate){
-
-        alert(
-            "This Register Number already exists."
-        );
-
+        alert("This Register Number already exists.");
         return;
     }
 
+    const originalStudent =
+        allStudents.find(
+            function(student){
+                return String(student.reg_no) ===
+                       String(editingOriginalReg);
+            }
+        );
 
-    /* UPDATE STUDENT TABLE */
+    if(!originalStudent){
+        alert("Original student record not found.");
+        return;
+    }
+
+    const oldEmail =
+        String(originalStudent.email || "")
+        .trim()
+        .toLowerCase();
+
+    /* UPDATE EMAIL THROUGH SECURE EDGE FUNCTION */
+
+    if(newEmail !== oldEmail){
+
+        const {
+            data: sessionData,
+            error: sessionError
+        } = await db.auth.getSession();
+
+        if(sessionError || !sessionData.session){
+            alert(
+                "Your teacher login session has expired. Please login again."
+            );
+            window.location.href = "teacher-login.html";
+            return;
+        }
+
+        const session = sessionData.session;
+
+        try{
+
+            const response = await fetch(
+                "https://cfhhcmyfewvvdylqvcdg.supabase.co/functions/v1/update-student-email",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json",
+                        "Authorization":
+                            "Bearer " + session.access_token
+                    },
+
+                    body:JSON.stringify({
+                        reg_no: editingOriginalReg,
+                        new_email: newEmail
+                    })
+                }
+            );
+
+            const result = await response.json();
+
+            if(!response.ok){
+                alert(
+                    "Email update failed:\n\n" +
+                    (result.error || "Unable to update email.")
+                );
+                return;
+            }
+
+        }catch(error){
+
+            alert(
+                "Unable to connect to the email update service.\n\n" +
+                error.message
+            );
+
+            return;
+        }
+    }
+
+    /* UPDATE STUDENT DETAILS */
 
     const {
         error
     } = await db
         .from("students")
         .update({
-
-            reg_no:
-                newReg,
-
-            name:
-                newName,
-
-            semester:
-                Number(
-                    newSemester
-                )
-
+            reg_no: newReg,
+            name: newName,
+            semester: Number(newSemester)
         })
         .eq(
             "reg_no",
             editingOriginalReg
         );
 
-
     if(error){
-
         alert(
             "Unable to update student:\n\n" +
             error.message
         );
-
         return;
     }
 
-
-    /* UPDATE EXISTING SUBMISSIONS
-       IF REGISTER NUMBER CHANGED */
+    /* UPDATE EXISTING SUBMISSIONS IF REGISTER NUMBER CHANGED */
 
     if(
         String(newReg) !==
@@ -1784,39 +1837,30 @@ async function saveStudentEdit(){
         } = await db
             .from("submissions")
             .update({
-
-                reg_no:
-                    newReg
-
+                reg_no: newReg
             })
             .eq(
                 "reg_no",
                 editingOriginalReg
             );
 
-
         if(submissionError){
-
             alert(
-                "Student updated, but existing submissions could not be updated:\n\n" +
+                "Student details were updated, but existing submissions could not be updated:\n\n" +
                 submissionError.message
             );
-
         }
-
     }
-
 
     alert(
         "Student details updated successfully!"
     );
 
-
     closeEditModal();
 
     await loadAllData();
-
 }
+
 
 
 /* =====================================================
