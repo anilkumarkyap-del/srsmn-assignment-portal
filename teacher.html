@@ -561,6 +561,15 @@ onclick="downloadAssignmentZIP()">
 
 </button>
 
+<button
+id="clearBtn"
+onclick="clearAssignmentPDFs()"
+style="background:#dc2626;color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:bold;margin-left:8px;">
+
+🗑️ Clear Uploaded PDFs
+
+</button>
+
 </div>
 
 </div>
@@ -1296,6 +1305,30 @@ function displaySubmissions(){
                 `;
 
 
+            const pdfAction =
+                submission.pdf_url
+
+                ?
+
+                `
+                <button
+                class="pdf-btn"
+                onclick="viewPDF('${submission.pdf_url}')">
+
+                📄 View PDF
+
+                </button>
+                `
+
+                :
+
+                `
+                <span style="color:#6b7280;font-weight:bold;">
+                🗑️ PDF Cleared
+                </span>
+                `;
+
+
             html += `
 
             <tr>
@@ -1338,13 +1371,7 @@ function displaySubmissions(){
 
             <td>
 
-            <button
-            class="pdf-btn"
-            onclick="viewPDF('${submission.pdf_url}')">
-
-            📄 View PDF
-
-            </button>
+            ${pdfAction}
 
             </td>
 
@@ -1609,6 +1636,159 @@ function sanitizeFilename(name){
         )
         .trim() ||
         "File";
+}
+
+
+/* =====================================================
+   CLEAR UPLOADED PDFS FOR SELECTED ASSIGNMENT
+===================================================== */
+
+async function clearAssignmentPDFs(){
+
+    const selectedAssignment =
+        document.getElementById(
+            "assignmentFilter"
+        ).value;
+
+    if(!selectedAssignment){
+
+        alert(
+            "Please select a specific assignment first."
+        );
+
+        return;
+    }
+
+    const assignment =
+        allAssignments.find(
+            function(a){
+                return String(a.id) ===
+                       String(selectedAssignment);
+            }
+        );
+
+    if(!assignment){
+
+        alert("Assignment not found.");
+        return;
+    }
+
+    const submissions =
+        allSubmissions.filter(
+            function(submission){
+                return String(
+                    submission.assignment_id
+                ) === String(selectedAssignment);
+            }
+        );
+
+    const pdfCount =
+        submissions.filter(
+            function(submission){
+                return !!submission.pdf_url;
+            }
+        ).length;
+
+    if(pdfCount === 0){
+
+        alert(
+            "There are no uploaded PDFs to clear for this assignment."
+        );
+
+        return;
+    }
+
+    const confirmed = confirm(
+        "⚠️ IMPORTANT\n\n" +
+        "You are about to permanently delete " +
+        pdfCount +
+        " uploaded PDF file(s) for:\n\n" +
+        assignment.title +
+        "\n\n" +
+        "Submission records, student details, marks and review status will be retained.\n\n" +
+        "The question PDF will NOT be deleted.\n\n" +
+        "Please make sure you have downloaded the ZIP backup first.\n\n" +
+        "Continue?"
+    );
+
+    if(!confirmed){
+        return;
+    }
+
+    const button =
+        document.getElementById(
+            "clearBtn"
+        );
+
+    const originalText =
+        button.innerText;
+
+    button.disabled = true;
+    button.style.opacity = "0.7";
+    button.innerText = "Clearing PDFs...";
+
+    try{
+
+        const {
+            data: { session }
+        } = await db.auth.getSession();
+
+        if(!session){
+            throw new Error(
+                "Teacher session expired. Please log in again."
+            );
+        }
+
+        const response =
+            await fetch(
+                SUPABASE_URL +
+                "/functions/v1/clear-assignment-pdfs",
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization":
+                            "Bearer " + session.access_token,
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        assignment_id: Number(selectedAssignment)
+                    })
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if(!response.ok){
+            throw new Error(
+                result.error ||
+                "Unable to clear uploaded PDFs."
+            );
+        }
+
+        alert(
+            "Uploaded PDFs cleared successfully.\n\n" +
+            result.deleted_count +
+            " PDF file(s) deleted from Storage.\n\n" +
+            "Submission records, marks and review details have been retained."
+        );
+
+        await loadAllData();
+
+    }catch(error){
+
+        alert(
+            "Unable to clear uploaded PDFs:\n\n" +
+            error.message
+        );
+
+    }finally{
+
+        button.disabled = false;
+        button.style.opacity = "1";
+        button.innerText = originalText;
+    }
 }
 
 
