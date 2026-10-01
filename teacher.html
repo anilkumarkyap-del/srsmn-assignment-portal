@@ -550,6 +550,19 @@ onclick="loadAllData()">
 
 </div>
 
+<div>
+
+<button
+class="pdf-btn"
+id="zipBtn"
+onclick="downloadAssignmentZIP()">
+
+📦 Download All Submissions
+
+</button>
+
+</div>
+
 </div>
 
 
@@ -822,6 +835,7 @@ Save Changes
 <!-- SUPABASE -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script src="app.js"></script>
 
@@ -1364,6 +1378,237 @@ function displaySubmissions(){
     table.innerHTML =
         html;
 
+}
+
+
+/* =====================================================
+   DOWNLOAD ALL SUBMISSIONS AS ZIP
+===================================================== */
+
+async function downloadAssignmentZIP(){
+
+    const selectedAssignment =
+        document.getElementById(
+            "assignmentFilter"
+        ).value;
+
+    if(!selectedAssignment){
+
+        alert(
+            "Please select an assignment first."
+        );
+
+        return;
+    }
+
+    const assignment =
+        allAssignments.find(
+            function(a){
+                return String(a.id) ===
+                       String(selectedAssignment);
+            }
+        );
+
+    if(!assignment){
+
+        alert("Assignment not found.");
+        return;
+    }
+
+    const submissions =
+        allSubmissions.filter(
+            function(submission){
+                return String(
+                    submission.assignment_id
+                ) === String(selectedAssignment);
+            }
+        );
+
+    if(submissions.length === 0){
+
+        alert(
+            "There are no submissions for this assignment."
+        );
+
+        return;
+    }
+
+    if(typeof JSZip === "undefined"){
+
+        alert(
+            "ZIP library could not be loaded. Please refresh the page and try again."
+        );
+
+        return;
+    }
+
+    const button =
+        document.getElementById("zipBtn");
+
+    const originalText =
+        button.innerText;
+
+    button.disabled = true;
+    button.style.opacity = "0.7";
+
+    try{
+
+        const zip = new JSZip();
+
+        for(let i = 0; i < submissions.length; i++){
+
+            const submission =
+                submissions[i];
+
+            button.innerText =
+                "Preparing " +
+                (i + 1) +
+                "/" +
+                submissions.length +
+                "...";
+
+            if(!submission.pdf_url){
+                throw new Error(
+                    "PDF file name is missing for Register No. " +
+                    submission.reg_no
+                );
+            }
+
+            const student =
+                allStudents.find(
+                    function(s){
+                        return String(s.reg_no) ===
+                               String(submission.reg_no);
+                    }
+                );
+
+            const studentName =
+                student && student.name
+                ? student.name
+                : "Student";
+
+            const {
+                data,
+                error
+            } = await db
+                .storage
+                .from("assignments")
+                .createSignedUrl(
+                    submission.pdf_url,
+                    3600
+                );
+
+            if(error){
+                throw new Error(
+                    "Unable to access PDF for " +
+                    submission.reg_no +
+                    ": " +
+                    error.message
+                );
+            }
+
+            const response =
+                await fetch(data.signedUrl);
+
+            if(!response.ok){
+                throw new Error(
+                    "Unable to download PDF for " +
+                    submission.reg_no
+                );
+            }
+
+            const blob =
+                await response.blob();
+
+            const safeReg =
+                sanitizeFilename(
+                    submission.reg_no
+                );
+
+            const safeName =
+                sanitizeFilename(
+                    studentName
+                );
+
+            zip.file(
+                safeReg +
+                "_" +
+                safeName +
+                ".pdf",
+                blob
+            );
+        }
+
+        button.innerText =
+            "Creating ZIP...";
+
+        const zipBlob =
+            await zip.generateAsync({
+                type:"blob"
+            });
+
+        const downloadURL =
+            URL.createObjectURL(zipBlob);
+
+        const link =
+            document.createElement("a");
+
+        link.href = downloadURL;
+
+        link.download =
+            sanitizeFilename(
+                assignment.title
+            ) +
+            "_Submissions.zip";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+
+        setTimeout(
+            function(){
+                URL.revokeObjectURL(downloadURL);
+            },
+            2000
+        );
+
+        alert(
+            "ZIP created successfully.\n\n" +
+            submissions.length +
+            " submission(s) included."
+        );
+
+    }catch(error){
+
+        alert(
+            "Unable to create ZIP:\n\n" +
+            error.message
+        );
+
+    }finally{
+
+        button.disabled = false;
+        button.style.opacity = "1";
+        button.innerText = originalText;
+    }
+}
+
+
+/* =====================================================
+   SAFE FILE NAME
+===================================================== */
+
+function sanitizeFilename(name){
+
+    return String(name || "File")
+        .replace(
+            /[<>:"/\\|?*]/g,
+            "_"
+        )
+        .trim() ||
+        "File";
 }
 
 
