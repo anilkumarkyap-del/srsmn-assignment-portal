@@ -463,35 +463,6 @@ type="date">
 
 <br>
 
-<!-- OPTIONAL ASSIGNMENT QUESTIONS -->
-
-<div class="form-group" style="margin-bottom:15px;">
-
-<label>Assignment Questions / Instructions (Optional)</label>
-
-<textarea
-id="questionText"
-rows="5"
-placeholder="Type assignment questions or instructions here (optional)"
-style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:15px; resize:vertical;"></textarea>
-
-</div>
-
-<div class="form-group" style="margin-bottom:15px;">
-
-<label>Question PDF (Optional)</label>
-
-<input
-id="questionPdf"
-type="file"
-accept="application/pdf">
-
-<div class="note">
-Optional. Upload the assignment question paper/instructions as a PDF. Maximum size: 10 MB.
-</div>
-
-</div>
-
 <button
 class="publish-btn"
 onclick="createAssignment()">
@@ -545,6 +516,19 @@ class="refresh-btn"
 onclick="loadAllData()">
 
 🔄 Refresh
+
+</button>
+
+</div>
+
+<div>
+
+<button
+class="pdf-btn"
+id="zipBtn"
+onclick="downloadAssignmentZIP()">
+
+📦 Download All Submissions
 
 </button>
 
@@ -822,6 +806,8 @@ Save Changes
 <!-- SUPABASE -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script src="app.js"></script>
 
@@ -1367,7 +1353,7 @@ function displaySubmissions(){
 }
 
 
-/* =====================================================
+/* =====================================================\n   DOWNLOAD ALL SUBMISSIONS AS ZIP\n===================================================== */\n\nasync function downloadAssignmentZIP(){\n\n    const selectedAssignment =\n        document.getElementById("assignmentFilter").value;\n\n    if(!selectedAssignment){\n        alert("Please select an assignment first.");\n        return;\n    }\n\n    const assignment = allAssignments.find(function(a){\n        return String(a.id) === String(selectedAssignment);\n    });\n\n    if(!assignment){\n        alert("Assignment not found.");\n        return;\n    }\n\n    const submissions = allSubmissions.filter(function(submission){\n        return String(submission.assignment_id) === String(selectedAssignment);\n    });\n\n    if(submissions.length === 0){\n        alert("There are no submissions for this assignment.");\n        return;\n    }\n\n    const button = document.getElementById("zipBtn");\n    const originalText = button.innerText;\n    button.disabled = true;\n    button.style.opacity = "0.7";\n\n    try{\n        const zip = new JSZip();\n\n        for(let i = 0; i < submissions.length; i++){\n            const submission = submissions[i];\n            button.innerText = "Preparing " + (i + 1) + "/" + submissions.length + "...";\n\n            const student = allStudents.find(function(s){\n                return String(s.reg_no) === String(submission.reg_no);\n            });\n\n            const studentName = student ? student.name : "Student";\n\n            const {data, error} = await db.storage\n                .from("assignments")\n                .createSignedUrl(submission.pdf_url, 3600);\n\n            if(error){\n                throw new Error("Unable to access PDF for " + submission.reg_no + ": " + error.message);\n            }\n\n            const response = await fetch(data.signedUrl);\n\n            if(!response.ok){\n                throw new Error("Unable to download PDF for " + submission.reg_no);\n            }\n\n            const blob = await response.blob();\n\n            const safeReg = String(submission.reg_no).replace(/[<>:"/\\|?*]/g, "_");\n            const safeName = String(studentName).replace(/[<>:"/\\|?*]/g, "_");\n\n            zip.file(safeReg + "_" + safeName + ".pdf", blob);\n        }\n\n        button.innerText = "Creating ZIP...";\n\n        const zipBlob = await zip.generateAsync({type:"blob"});\n        const downloadURL = URL.createObjectURL(zipBlob);\n        const link = document.createElement("a");\n        link.href = downloadURL;\n        link.download = sanitizeFilename(assignment.title) + "_Submissions.zip";\n        document.body.appendChild(link);\n        link.click();\n        link.remove();\n\n        setTimeout(function(){\n            URL.revokeObjectURL(downloadURL);\n        }, 2000);\n\n        alert("ZIP created successfully.\\n\\n" + submissions.length + " submission(s) included.");\n\n    }catch(error){\n        alert("Unable to create ZIP:\\n\\n" + error.message);\n\n    }finally{\n        button.disabled = false;\n        button.style.opacity = "1";\n        button.innerText = originalText;\n    }\n}\n\n\n/* =====================================================\n   SANITIZE FILE NAME\n===================================================== */\n\nfunction sanitizeFilename(name){\n    return String(name || "Assignment")\n        .replace(/[<>:"/\\|?*]/g, "_")\n        .trim() || "Assignment";\n}\n\n\n/* =====================================================
    VIEW PDF
 ===================================================== */
 
