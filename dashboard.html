@@ -12,22 +12,26 @@ body{
     margin:0;
     padding:30px;
 }
+
 .container{
     max-width:800px;
     margin:auto;
 }
+
 .top{
     display:flex;
     justify-content:space-between;
     align-items:center;
     margin-bottom:20px;
 }
+
 .badge{
     background:#2563eb;
     color:white;
     padding:8px 15px;
     border-radius:20px;
 }
+
 .card{
     background:white;
     padding:20px;
@@ -35,9 +39,42 @@ body{
     margin-bottom:15px;
     box-shadow:0 5px 15px rgba(0,0,0,.1);
 }
+
+.question-box{
+    background:#f8fafc;
+    border-left:5px solid #2563eb;
+    padding:15px;
+    margin:15px 0;
+    border-radius:8px;
+}
+
+.question-title{
+    font-weight:bold;
+    color:#1e40af;
+    margin-bottom:8px;
+}
+
+.question-text{
+    white-space:pre-wrap;
+    line-height:1.6;
+    color:#374151;
+}
+
+.pdf-question{
+    margin:15px 0;
+    padding:12px;
+    background:#eff6ff;
+    border-radius:8px;
+}
+
+.pdf-question button{
+    background:#059669;
+}
+
 input[type=file]{
     margin:10px 0;
 }
+
 button{
     background:#2563eb;
     color:white;
@@ -45,6 +82,18 @@ button{
     padding:10px 18px;
     border-radius:8px;
     cursor:pointer;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.no-assignments{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    text-align:center;
+    color:#64748b;
 }
 </style>
 </head>
@@ -67,6 +116,7 @@ button{
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+
 const db = window.supabase.createClient(
   "https://cfhhcmyfewvvdylqvcdg.supabase.co",
   "sb_publishable_54d-5PRIOoE5gQ3HtHyAUg_5N1Cjh7F"
@@ -75,84 +125,321 @@ const db = window.supabase.createClient(
 const semester = localStorage.getItem("semester");
 const reg = localStorage.getItem("reg_no");
 
-document.getElementById("sem").innerHTML = "Semester " + semester;
-document.getElementById("reg").innerHTML = "Register No : " + reg;
+document.getElementById("sem").innerHTML =
+    "Semester " + semester;
+
+document.getElementById("reg").innerHTML =
+    "Register No : " + reg;
+
+
+/* =====================================================
+   LOAD ASSIGNMENTS
+===================================================== */
 
 async function loadAssignments(){
 
- const {data,error} = await db
- .from("assignments")
- .select("*")
- .eq("semester",Number(semester));
+    const {data,error} = await db
+        .from("assignments")
+        .select("*")
+        .eq("semester",Number(semester));
 
- if(error){
-   alert(error.message);
-   return;
- }
+    if(error){
 
- let html="";
+        alert(error.message);
+        return;
+    }
 
- data.forEach(a=>{
 
- html += `
- <div class="card">
-   <h3>${a.title}</h3>
-   <p><b>Subject:</b> ${a.subject}</p>
-   <p><b>Due Date:</b> ${a.due_date}</p>
+    let html = "";
 
-   <input type="file" id="file${a.id}" accept=".pdf"><br>
 
-   <button onclick="uploadPDF(${a.id})">
-      Upload PDF
-   </button>
+    if(!data || data.length === 0){
 
- </div>
- `;
- });
+        html = `
+        <div class="no-assignments">
+            <h3>No assignments available</h3>
+            <p>There are currently no assignments for your semester.</p>
+        </div>
+        `;
 
- document.getElementById("list").innerHTML = html;
+        document.getElementById("list").innerHTML = html;
+
+        return;
+    }
+
+
+    data.forEach(a => {
+
+        /* ---------------------------------------------
+           QUESTION TEXT
+        --------------------------------------------- */
+
+        let questionHTML = "";
+
+        if(a.question_text){
+
+            questionHTML = `
+            <div class="question-box">
+
+                <div class="question-title">
+                    📋 Questions / Instructions
+                </div>
+
+                <div class="question-text">
+                    ${escapeHTML(a.question_text)}
+                </div>
+
+            </div>
+            `;
+        }
+
+
+        /* ---------------------------------------------
+           QUESTION PDF
+        --------------------------------------------- */
+
+        let questionPDFHTML = "";
+
+        if(a.question_pdf_url){
+
+            questionPDFHTML = `
+            <div class="pdf-question">
+
+                <b>📄 Question Paper / Instructions</b>
+
+                <br><br>
+
+                <button
+                    onclick="downloadQuestionPDF('${a.question_pdf_url}')">
+
+                    Download Question PDF
+
+                </button>
+
+            </div>
+            `;
+        }
+
+
+        /* ---------------------------------------------
+           ASSIGNMENT CARD
+        --------------------------------------------- */
+
+        html += `
+
+        <div class="card">
+
+            <h3>${escapeHTML(a.title)}</h3>
+
+            <p>
+                <b>Subject:</b>
+                ${escapeHTML(a.subject)}
+            </p>
+
+            <p>
+                <b>Due Date:</b>
+                ${a.due_date}
+            </p>
+
+
+            ${questionHTML}
+
+            ${questionPDFHTML}
+
+
+            <hr style="
+                border:none;
+                border-top:1px solid #e5e7eb;
+                margin:20px 0;
+            ">
+
+
+            <h4>Submit Your Assignment</h4>
+
+            <input
+                type="file"
+                id="file${a.id}"
+                accept=".pdf,application/pdf"
+            >
+
+            <br>
+
+            <button
+                onclick="uploadPDF(${a.id})">
+
+                Upload PDF
+
+            </button>
+
+        </div>
+
+        `;
+
+    });
+
+
+    document.getElementById("list").innerHTML = html;
 
 }
+
+
+/* =====================================================
+   DOWNLOAD QUESTION PDF
+===================================================== */
+
+async function downloadQuestionPDF(filePath){
+
+    if(!filePath){
+
+        alert("Question PDF not found.");
+        return;
+    }
+
+
+    const {
+        data,
+        error
+    } = await db
+        .storage
+        .from("assignments")
+        .createSignedUrl(
+            filePath,
+            3600
+        );
+
+
+    if(error){
+
+        alert(
+            "Unable to open Question PDF:\n\n" +
+            error.message
+        );
+
+        return;
+    }
+
+
+    window.open(
+        data.signedUrl,
+        "_blank"
+    );
+
+}
+
+
+/* =====================================================
+   UPLOAD STUDENT PDF
+===================================================== */
 
 async function uploadPDF(id){
 
-  const file = document.getElementById("file"+id).files[0];
+    const file =
+        document.getElementById(
+            "file" + id
+        ).files[0];
 
-  if(!file){
-    alert("Choose a PDF first");
-    return;
-  }
 
-  const filename = reg + "_" + id + ".pdf";
+    if(!file){
 
-  const { error } = await db.storage
-    .from("assignments")
-    .upload(filename, file, { upsert:true });
+        alert("Choose a PDF first");
+        return;
+    }
 
-  if(error){
-    alert(error.message);
-    return;
-  }
 
-const { data: submissionData, error: submissionError } =
-  await db.from("submissions").insert({
-    reg_no: reg,
-    assignment_id: id,
-    pdf_url: filename,
-    status: "Submitted"
-  })
-  .select();
+    if(file.type !== "application/pdf"){
 
-if (submissionError) {
-  alert("PDF uploaded, but submission record failed:\n\n" + submissionError.message);
-  console.error("SUBMISSION ERROR:", submissionError);
-  return;
+        alert("Please select a PDF file.");
+        return;
+    }
+
+
+    const filename =
+        reg + "_" + id + ".pdf";
+
+
+    const {
+        error
+    } = await db.storage
+        .from("assignments")
+        .upload(
+            filename,
+            file,
+            {
+                upsert:true
+            }
+        );
+
+
+    if(error){
+
+        alert(error.message);
+        return;
+    }
+
+
+    const {
+        data: submissionData,
+        error: submissionError
+    } =
+        await db
+        .from("submissions")
+        .insert({
+
+            reg_no: reg,
+
+            assignment_id: id,
+
+            pdf_url: filename,
+
+            status: "Submitted"
+
+        })
+        .select();
+
+
+    if(submissionError){
+
+        alert(
+            "PDF uploaded, but submission record failed:\n\n" +
+            submissionError.message
+        );
+
+        console.error(
+            "SUBMISSION ERROR:",
+            submissionError
+        );
+
+        return;
+    }
+
+
+    alert(
+        "PDF uploaded and submission recorded successfully!"
+    );
+
 }
 
-alert("PDF uploaded and submission recorded successfully!");
 
-  alert("PDF uploaded successfully!");
+/* =====================================================
+   ESCAPE HTML
+   Prevents question text from being interpreted as HTML
+===================================================== */
+
+function escapeHTML(text){
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
+
+
+/* =====================================================
+   START
+===================================================== */
+
 loadAssignments();
 
 </script>
