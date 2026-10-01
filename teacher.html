@@ -1739,10 +1739,9 @@ async function clearAssignmentPDFs(){
             );
         }
 
-        const response =
-            await fetch(
-                SUPABASE_URL +
-                "/functions/v1/clear-assignment-pdfs",
+       const response =
+    await fetch(
+        "https://cfhhcmyfewvvdylqvcdg.supabase.co/functions/v1/clear-assignment-pdfs",
                 {
                     method: "POST",
                     headers: {
