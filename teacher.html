@@ -893,6 +893,33 @@ async function checkTeacherAccess(){
 
 
 /* =====================================================
+   TEACHER LOGOUT
+===================================================== */
+
+async function teacherLogout(){
+
+    const confirmed = confirm(
+        "Are you sure you want to logout?"
+    );
+
+    if(!confirmed){
+        return;
+    }
+
+    const { error } = await db.auth.signOut();
+
+    if(error){
+        alert(
+            "Unable to logout:\n\n" + error.message
+        );
+        return;
+    }
+
+    window.location.href = "teacher-login.html";
+}
+
+
+/* =====================================================
    GLOBAL DATA
 ===================================================== */
 
