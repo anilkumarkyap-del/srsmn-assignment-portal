@@ -121,6 +121,13 @@ button:hover{
     font-size:13px;
 }
 
+.reviewed-pdf-btn{
+    background:#7c3aed;
+    padding:8px 12px;
+    font-size:13px;
+    margin-left:5px;
+}
+
 .update-btn{
     background:#f59e0b;
     padding:8px 12px;
@@ -874,6 +881,7 @@ Save Changes
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 
 <script src="app.js"></script>
 
@@ -1346,6 +1354,26 @@ function displaySubmissions(){
                 Update
 
                 </button>
+
+                ${
+                    submission.pdf_url
+                    ?
+                    `
+                    <button
+                    class="reviewed-pdf-btn"
+                    onclick="generateReviewedPDF(${submission.id})">
+
+                    📄 Reviewed PDF
+
+                    </button>
+                    `
+                    :
+                    `
+                    <span style="display:block;margin-top:5px;color:#6b7280;font-size:11px;">
+                    PDF cleared
+                    </span>
+                    `
+                }
                 `
 
                 :
@@ -1985,6 +2013,903 @@ async function saveMarks(id){
     );
 
     await loadAllData();
+
+}
+
+
+/* =====================================================
+   GENERATE REVIEWED PDF
+   Adds an evaluation page to the END of the original
+   student PDF. The original assignment pages remain
+   unchanged.
+===================================================== */
+
+async function generateReviewedPDF(id){
+
+    if(typeof PDFLib === "undefined"){
+
+        alert(
+            "PDF library could not be loaded.\n\n" +
+            "Please refresh the page and try again."
+        );
+
+        return;
+    }
+
+    const submission =
+        allSubmissions.find(
+            function(item){
+                return String(item.id) === String(id);
+            }
+        );
+
+    if(!submission){
+
+        alert("Submission record not found.");
+        return;
+    }
+
+    if(submission.status !== "Reviewed"){
+
+        alert(
+            "Please save the marks and feedback first."
+        );
+
+        return;
+    }
+
+    if(!submission.pdf_url){
+
+        alert(
+            "The original student PDF is not available.\n\n" +
+            "The PDF may have been cleared from Storage."
+        );
+
+        return;
+    }
+
+    const assignment =
+        allAssignments.find(
+            function(item){
+                return String(item.id) ===
+                       String(submission.assignment_id);
+            }
+        );
+
+    const student =
+        allStudents.find(
+            function(item){
+                return String(item.reg_no) ===
+                       String(submission.reg_no);
+            }
+        );
+
+    if(!assignment){
+
+        alert("Assignment details not found.");
+        return;
+    }
+
+    const button =
+        document.querySelector(
+            `button[onclick="generateReviewedPDF(${id})"]`
+        );
+
+    const originalButtonText =
+        button ? button.innerText : "";
+
+    if(button){
+
+        button.disabled = true;
+        button.style.opacity = "0.7";
+        button.innerText = "Creating PDF...";
+
+    }
+
+    try{
+
+        /* -------------------------------------------------
+           GET ORIGINAL STUDENT PDF
+        ------------------------------------------------- */
+
+        const {
+            data: originalURLData,
+            error: originalURLError
+        } = await db
+            .storage
+            .from("assignments")
+            .createSignedUrl(
+                submission.pdf_url,
+                3600
+            );
+
+        if(originalURLError){
+
+            throw new Error(
+                "Unable to access the student's original PDF:\n\n" +
+                originalURLError.message
+            );
+
+        }
+
+        const originalResponse =
+            await fetch(originalURLData.signedUrl);
+
+        if(!originalResponse.ok){
+
+            throw new Error(
+                "Unable to download the student's original PDF."
+            );
+
+        }
+
+        const originalBytes =
+            await originalResponse.arrayBuffer();
+
+
+        /* -------------------------------------------------
+           CREATE PDF DOCUMENT
+        ------------------------------------------------- */
+
+        const reviewedPdf =
+            await PDFLib.PDFDocument.load(
+                originalBytes
+            );
+
+
+        /* -------------------------------------------------
+           ADD REVIEW PAGE AT THE END
+           Original pages are not changed.
+        ------------------------------------------------- */
+
+        const page =
+            reviewedPdf.addPage(
+                [
+                    PDFLib.PageSizes.A4[0],
+                    PDFLib.PageSizes.A4[1]
+                ]
+            );
+
+        const {
+            width,
+            height
+        } = page.getSize();
+
+        const font =
+            await reviewedPdf.embedFont(
+                PDFLib.StandardFonts.Helvetica
+            );
+
+        const boldFont =
+            await reviewedPdf.embedFont(
+                PDFLib.StandardFonts.HelveticaBold
+            );
+
+
+        /* -------------------------------------------------
+           HELPER FUNCTIONS
+        ------------------------------------------------- */
+
+        function drawText(
+            text,
+            x,
+            y,
+            options = {}
+        ){
+
+            page.drawText(
+                String(text ?? ""),
+                {
+                    x:x,
+                    y:y,
+                    size:options.size || 11,
+                    font:options.bold
+                        ? boldFont
+                        : font,
+                    color:options.color ||
+                        PDFLib.rgb(0.12,0.16,0.22)
+                }
+            );
+
+        }
+
+
+        function wrapText(
+            text,
+            selectedFont,
+            size,
+            maxWidth
+        ){
+
+            const words =
+                String(text || "").split(/\s+/);
+
+            const lines = [];
+            let current = "";
+
+            words.forEach(
+                function(word){
+
+                    const test =
+                        current
+                        ? current + " " + word
+                        : word;
+
+                    const testWidth =
+                        selectedFont.widthOfTextAtSize(
+                            test,
+                            size
+                        );
+
+                    if(
+                        testWidth <= maxWidth
+                    ){
+
+                        current = test;
+
+                    }else{
+
+                        if(current){
+                            lines.push(current);
+                        }
+
+                        current = word;
+
+                    }
+
+                }
+            );
+
+            if(current){
+                lines.push(current);
+            }
+
+            return lines;
+        }
+
+
+        function drawWrapped(
+            text,
+            x,
+            y,
+            maxWidth,
+            size,
+            lineHeight,
+            selectedFont
+        ){
+
+            const lines =
+                wrapText(
+                    text,
+                    selectedFont,
+                    size,
+                    maxWidth
+                );
+
+            let currentY = y;
+
+            lines.forEach(
+                function(line){
+
+                    page.drawText(
+                        line,
+                        {
+                            x:x,
+                            y:currentY,
+                            size:size,
+                            font:selectedFont,
+                            color:PDFLib.rgb(
+                                0.12,
+                                0.16,
+                                0.22
+                            )
+                        }
+                    );
+
+                    currentY -= lineHeight;
+
+                }
+            );
+
+            return currentY;
+        }
+
+
+        /* -------------------------------------------------
+           HEADER
+        ------------------------------------------------- */
+
+        page.drawRectangle({
+            x:40,
+            y:height-115,
+            width:width-80,
+            height:75,
+            color:PDFLib.rgb(
+                0.93,
+                0.96,
+                1
+            ),
+            borderColor:PDFLib.rgb(
+                0.15,
+                0.39,
+                0.85
+            ),
+            borderWidth:1
+        });
+
+        const heading =
+            "DEPARTMENT OF COMMERCE";
+
+        const headingWidth =
+            boldFont.widthOfTextAtSize(
+                heading,
+                18
+            );
+
+        drawText(
+            heading,
+            (width-headingWidth)/2,
+            height-72,
+            {
+                size:18,
+                bold:true,
+                color:PDFLib.rgb(
+                    0.10,
+                    0.30,
+                    0.75
+                )
+            }
+        );
+
+        const college =
+            "SRSMN GFGC Barkur";
+
+        const collegeWidth =
+            boldFont.widthOfTextAtSize(
+                college,
+                13
+            );
+
+        drawText(
+            college,
+            (width-collegeWidth)/2,
+            height-94,
+            {
+                size:13,
+                bold:true
+            }
+        );
+
+
+        /* -------------------------------------------------
+           TITLE
+        ------------------------------------------------- */
+
+        const title =
+            "ASSIGNMENT EVALUATION / REVIEWED ASSIGNMENT";
+
+        const titleWidth =
+            boldFont.widthOfTextAtSize(
+                title,
+                13
+            );
+
+        drawText(
+            title,
+            (width-titleWidth)/2,
+            height-150,
+            {
+                size:13,
+                bold:true
+            }
+        );
+
+
+        /* -------------------------------------------------
+           STUDENT + ASSIGNMENT DETAILS
+        ------------------------------------------------- */
+
+        let y = height - 185;
+        const leftX = 55;
+        const valueX = 185;
+        const maxWidth = width - 110;
+
+        function detailRow(
+            label,
+            value
+        ){
+
+            drawText(
+                label + ":",
+                leftX,
+                y,
+                {
+                    size:10.5,
+                    bold:true
+                }
+            );
+
+            drawText(
+                String(value ?? "-"),
+                valueX,
+                y,
+                {
+                    size:10.5
+                }
+            );
+
+            y -= 20;
+        }
+
+        detailRow(
+            "Student Name",
+            student && student.name
+                ? student.name
+                : "Name not found"
+        );
+
+        detailRow(
+            "Register No.",
+            submission.reg_no
+        );
+
+        detailRow(
+            "Semester",
+            student && student.semester
+                ? "Semester " + student.semester
+                : "-"
+        );
+
+        detailRow(
+            "Subject",
+            assignment.subject || "-"
+        );
+
+        detailRow(
+            "Assignment",
+            assignment.title || "-"
+        );
+
+        detailRow(
+            "Due Date",
+            assignment.due_date || "-"
+        );
+
+        detailRow(
+            "Submission Status",
+            "Reviewed"
+        );
+
+
+        /* -------------------------------------------------
+           EVALUATION BOX
+        ------------------------------------------------- */
+
+        y -= 8;
+
+        page.drawRectangle({
+            x:45,
+            y:y-150,
+            width:width-90,
+            height:155,
+            color:PDFLib.rgb(
+                0.97,
+                0.98,
+                1
+            ),
+            borderColor:PDFLib.rgb(
+                0.75,
+                0.82,
+                0.92
+            ),
+            borderWidth:1
+        });
+
+        drawText(
+            "EVALUATION",
+            60,
+            y-22,
+            {
+                size:13,
+                bold:true,
+                color:PDFLib.rgb(
+                    0.10,
+                    0.30,
+                    0.75
+                )
+            }
+        );
+
+        drawText(
+            "Marks:",
+            60,
+            y-52,
+            {
+                size:11,
+                bold:true
+            }
+        );
+
+        drawText(
+            String(
+                submission.marks !== null &&
+                submission.marks !== undefined
+                    ? submission.marks
+                    : "-"
+            ),
+            125,
+            y-52,
+            {
+                size:11,
+                bold:true
+            }
+        );
+
+        drawText(
+            "Teacher Feedback:",
+            60,
+            y-80,
+            {
+                size:11,
+                bold:true
+            }
+        );
+
+        const feedback =
+            submission.remarks &&
+            String(submission.remarks).trim()
+                ? String(submission.remarks).trim()
+                : "No feedback provided.";
+
+        drawWrapped(
+            feedback,
+            60,
+            y-101,
+            maxWidth-30,
+            10.5,
+            15,
+            font
+        );
+
+
+        /* -------------------------------------------------
+           DATE / TIME
+        ------------------------------------------------- */
+
+        const reviewedDate =
+            new Date();
+
+        const dateText =
+            reviewedDate.toLocaleDateString(
+                "en-IN",
+                {
+                    day:"2-digit",
+                    month:"2-digit",
+                    year:"numeric"
+                }
+            );
+
+        const timeText =
+            reviewedDate.toLocaleTimeString(
+                "en-IN",
+                {
+                    hour:"2-digit",
+                    minute:"2-digit",
+                    second:"2-digit"
+                }
+            );
+
+
+        /* -------------------------------------------------
+           TEACHER DETAILS
+        ------------------------------------------------- */
+
+        let teacherY = 270;
+
+        drawText(
+            "Teacher:",
+            60,
+            teacherY,
+            {
+                size:10.5,
+                bold:true
+            }
+        );
+
+        drawText(
+            "Anil Kumar K Y",
+            155,
+            teacherY,
+            {
+                size:10.5
+            }
+        );
+
+        teacherY -= 20;
+
+        drawText(
+            "Designation:",
+            60,
+            teacherY,
+            {
+                size:10.5,
+                bold:true
+            }
+        );
+
+        drawText(
+            "Assistant Professor",
+            155,
+            teacherY,
+            {
+                size:10.5
+            }
+        );
+
+        teacherY -= 20;
+
+        drawText(
+            "Department:",
+            60,
+            teacherY,
+            {
+                size:10.5,
+                bold:true
+            }
+        );
+
+        drawText(
+            "Commerce",
+            155,
+            teacherY,
+            {
+                size:10.5
+            }
+        );
+
+        teacherY -= 20;
+
+        drawText(
+            "Institution:",
+            60,
+            teacherY,
+            {
+                size:10.5,
+                bold:true
+            }
+        );
+
+        drawText(
+            "SRSMN GFGC Barkur",
+            155,
+            teacherY,
+            {
+                size:10.5
+            }
+        );
+
+
+        /* -------------------------------------------------
+           SIGNATURE
+        ------------------------------------------------- */
+
+        const {
+            data: signatureURLData,
+            error: signatureURLError
+        } = await db
+            .storage
+            .from("assignments")
+            .createSignedUrl(
+                "teacher/anil_kumar_signature_final.png",
+                3600
+            );
+
+        if(signatureURLError){
+
+            throw new Error(
+                "Unable to access teacher signature:\n\n" +
+                signatureURLError.message
+            );
+
+        }
+
+        const signatureResponse =
+            await fetch(
+                signatureURLData.signedUrl
+            );
+
+        if(!signatureResponse.ok){
+
+            throw new Error(
+                "Unable to download teacher signature."
+            );
+
+        }
+
+        const signatureBytes =
+            await signatureResponse.arrayBuffer();
+
+        const signatureImage =
+            await reviewedPdf.embedPng(
+                signatureBytes
+            );
+
+        const signatureScale =
+            Math.min(
+                120 / signatureImage.width,
+                55 / signatureImage.height
+            );
+
+        const signatureWidth =
+            signatureImage.width *
+            signatureScale;
+
+        const signatureHeight =
+            signatureImage.height *
+            signatureScale;
+
+        page.drawImage(
+            signatureImage,
+            {
+                x:width-190,
+                y:145,
+                width:signatureWidth,
+                height:signatureHeight
+            }
+        );
+
+
+        drawText(
+            "Signature",
+            width-175,
+            125,
+            {
+                size:9,
+                color:PDFLib.rgb(
+                    0.35,
+                    0.39,
+                    0.45
+                )
+            }
+        );
+
+
+        /* -------------------------------------------------
+           REVIEWED DATE / TIME
+        ------------------------------------------------- */
+
+        drawText(
+            "Reviewed on: " + dateText,
+            60,
+            155,
+            {
+                size:9.5
+            }
+        );
+
+        drawText(
+            "Time: " + timeText,
+            60,
+            138,
+            {
+                size:9.5
+            }
+        );
+
+
+        /* -------------------------------------------------
+           FOOTER
+        ------------------------------------------------- */
+
+        const footer =
+            "This evaluation page is attached to the original student submission.";
+
+        const footerWidth =
+            font.widthOfTextAtSize(
+                footer,
+                8
+            );
+
+        drawText(
+            footer,
+            (width-footerWidth)/2,
+            55,
+            {
+                size:8,
+                color:PDFLib.rgb(
+                    0.40,
+                    0.44,
+                    0.50
+                )
+            }
+        );
+
+
+        /* -------------------------------------------------
+           SAVE / DOWNLOAD
+        ------------------------------------------------- */
+
+        const finalBytes =
+            await reviewedPdf.save();
+
+        const blob =
+            new Blob(
+                [finalBytes],
+                {
+                    type:"application/pdf"
+                }
+            );
+
+        const downloadURL =
+            URL.createObjectURL(blob);
+
+        const link =
+            document.createElement("a");
+
+        link.href =
+            downloadURL;
+
+        const studentName =
+            student && student.name
+                ? student.name
+                : "Student";
+
+        link.download =
+            sanitizeFilename(
+                submission.reg_no +
+                "_" +
+                studentName +
+                "_" +
+                assignment.title +
+                "_Reviewed.pdf"
+            );
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+
+        setTimeout(
+            function(){
+                URL.revokeObjectURL(
+                    downloadURL
+                );
+            },
+            3000
+        );
+
+        alert(
+            "Reviewed PDF generated successfully.\n\n" +
+            "The original assignment pages were retained unchanged, " +
+            "and the evaluation page was added at the end."
+        );
+
+    }catch(error){
+
+        console.error(
+            "REVIEWED PDF ERROR:",
+            error
+        );
+
+        alert(
+            "Unable to generate Reviewed PDF:\n\n" +
+            error.message
+        );
+
+    }finally{
+
+        if(button){
+
+            button.disabled = false;
+            button.style.opacity = "1";
+            button.innerText =
+                originalButtonText ||
+                "📄 Reviewed PDF";
+
+        }
+
+    }
 
 }
 
