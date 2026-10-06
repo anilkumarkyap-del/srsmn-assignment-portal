@@ -117,6 +117,56 @@ button:hover{
     text-align:center;
     color:#64748b;
 }
+
+/* =====================================================
+   SUBMISSION / REVIEW STATUS
+===================================================== */
+
+.submission-status{
+    margin-top:18px;
+    padding:15px;
+    border-radius:10px;
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+}
+
+.status-title{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.status-submitted{
+    color:#92400e;
+    background:#fffbeb;
+    border-color:#fde68a;
+}
+
+.status-reviewed{
+    color:#166534;
+    background:#f0fdf4;
+    border-color:#bbf7d0;
+}
+
+.marks-box{
+    margin-top:10px;
+    padding:10px 12px;
+    background:white;
+    border-radius:8px;
+    border:1px solid #d1fae5;
+    color:#166534;
+}
+
+.feedback-box{
+    margin-top:10px;
+    padding:12px;
+    background:white;
+    border-radius:8px;
+    border:1px solid #d1fae5;
+    color:#374151;
+    white-space:pre-wrap;
+    line-height:1.5;
+}
+
 </style>
 </head>
 
@@ -165,6 +215,12 @@ const db = window.supabase.createClient(
 
 const semester = localStorage.getItem("semester");
 const reg = localStorage.getItem("reg_no");
+
+/*
+   Stores the student's submission records.
+   Key = assignment_id
+*/
+let submissionMap = {};
 
 document.getElementById("sem").innerHTML =
     "Semester " + (semester || "");
@@ -224,6 +280,184 @@ async function studentLogout(){
         );
 
     }
+
+}
+
+
+/* =====================================================
+   LOAD STUDENT SUBMISSIONS
+   Gets marks, status and teacher remarks
+===================================================== */
+
+async function loadStudentSubmissions(){
+
+    submissionMap = {};
+
+    if(!reg){
+        return;
+    }
+
+    const {
+        data,
+        error
+    } = await db
+        .from("submissions")
+        .select("*")
+        .eq("reg_no", reg);
+
+    if(error){
+
+        console.error(
+            "SUBMISSION LOAD ERROR:",
+            error
+        );
+
+        return;
+    }
+
+    /*
+       If more than one record exists for the same
+       assignment, use the latest record returned.
+    */
+    if(data){
+
+        data.forEach(submission => {
+
+            submissionMap[
+                String(submission.assignment_id)
+            ] = submission;
+
+        });
+
+    }
+
+}
+
+
+/* =====================================================
+   CREATE SUBMISSION STATUS HTML
+===================================================== */
+
+function getSubmissionStatusHTML(assignmentId){
+
+    const submission =
+        submissionMap[String(assignmentId)];
+
+    /*
+       No submission yet
+    */
+    if(!submission){
+
+        return "";
+
+    }
+
+
+    /*
+       Assignment submitted but not reviewed
+    */
+    if(
+        submission.status !== "Reviewed"
+    ){
+
+        return `
+
+        <div class="submission-status status-submitted">
+
+            <div class="status-title">
+                ⏳ Assignment Submitted
+            </div>
+
+            <div>
+                Your assignment has been submitted and is
+                waiting for teacher review.
+            </div>
+
+        </div>
+
+        `;
+
+    }
+
+
+    /*
+       Assignment reviewed
+    */
+
+    let marksHTML = "";
+
+    if(
+        submission.marks !== null &&
+        submission.marks !== undefined &&
+        submission.marks !== ""
+    ){
+
+        marksHTML = `
+
+        <div class="marks-box">
+
+            <strong>Marks:</strong>
+            ${escapeHTML(submission.marks)}
+
+        </div>
+
+        `;
+
+    }
+
+
+    let feedbackHTML = "";
+
+    if(
+        submission.remarks !== null &&
+        submission.remarks !== undefined &&
+        String(submission.remarks).trim() !== ""
+    ){
+
+        feedbackHTML = `
+
+        <div class="feedback-box">
+
+            <strong>Teacher Feedback:</strong><br><br>
+
+            ${escapeHTML(submission.remarks)}
+
+        </div>
+
+        `;
+
+    }else{
+
+        feedbackHTML = `
+
+        <div class="feedback-box">
+
+            <strong>Teacher Feedback:</strong><br><br>
+
+            No feedback provided.
+
+        </div>
+
+        `;
+
+    }
+
+
+    return `
+
+    <div class="submission-status status-reviewed">
+
+        <div class="status-title">
+            ✅ Assignment Reviewed
+        </div>
+
+        ${marksHTML}
+
+        ${feedbackHTML}
+
+    </div>
+
+    `;
 
 }
 
@@ -306,7 +540,7 @@ async function loadAssignments(){
                 <br><br>
 
                 <button
-                    onclick="downloadQuestionPDF('${a.question_pdf_url}')">
+                    onclick="downloadQuestionPDF('${escapeHTML(a.question_pdf_url)}')">
 
                     Download Question PDF
 
@@ -315,6 +549,14 @@ async function loadAssignments(){
             </div>
             `;
         }
+
+
+        /* ---------------------------------------------
+           SUBMISSION STATUS
+        --------------------------------------------- */
+
+        const submissionStatusHTML =
+            getSubmissionStatusHTML(a.id);
 
 
         /* ---------------------------------------------
@@ -366,6 +608,8 @@ async function loadAssignments(){
                 Upload PDF
 
             </button>
+
+            ${submissionStatusHTML}
 
         </div>
 
@@ -509,6 +753,30 @@ async function uploadPDF(id){
     }
 
 
+    /*
+       Update the local submission map so the new
+       submission status appears immediately.
+    */
+
+    if(
+        submissionData &&
+        submissionData.length > 0
+    ){
+
+        submissionMap[String(id)] =
+            submissionData[0];
+
+    }
+
+
+    /*
+       Refresh the assignment cards so the
+       "Assignment Submitted" message appears.
+    */
+
+    await loadAssignments();
+
+
     alert(
         "PDF uploaded and submission recorded successfully!"
     );
@@ -518,7 +786,8 @@ async function uploadPDF(id){
 
 /* =====================================================
    ESCAPE HTML
-   Prevents question text from being interpreted as HTML
+   Prevents question text / feedback from being
+   interpreted as HTML
 ===================================================== */
 
 function escapeHTML(text){
@@ -536,7 +805,21 @@ function escapeHTML(text){
    START
 ===================================================== */
 
-loadAssignments();
+async function startDashboard(){
+
+    /*
+       First load the student's submissions.
+       Then load assignments so marks/feedback can
+       be displayed inside the correct assignment card.
+    */
+
+    await loadStudentSubmissions();
+
+    await loadAssignments();
+
+}
+
+startDashboard();
 
 </script>
 
