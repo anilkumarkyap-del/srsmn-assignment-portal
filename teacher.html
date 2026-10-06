@@ -128,6 +128,17 @@ button:hover{
     margin-left:5px;
 }
 
+.send-reviewed-btn{
+    background:#059669;
+    padding:8px 12px;
+    font-size:13px;
+    margin-left:5px;
+}
+
+.send-reviewed-btn:hover{
+    background:#047857;
+}
+
 .update-btn{
     background:#f59e0b;
     padding:8px 12px;
@@ -1366,6 +1377,14 @@ function displaySubmissions(){
                     📄 Reviewed PDF
 
                     </button>
+
+                    <button
+                    class="send-reviewed-btn"
+                    onclick="sendReviewedPDF(${submission.id})">
+
+                    📧 Send by Email
+
+                    </button>
                     `
                     :
                     `
@@ -2024,7 +2043,7 @@ async function saveMarks(id){
    unchanged.
 ===================================================== */
 
-async function generateReviewedPDF(id){
+async function generateReviewedPDF(id, downloadFile = true){
 
     if(typeof PDFLib === "undefined"){
 
@@ -2827,35 +2846,18 @@ async function generateReviewedPDF(id){
 
 
         /* -------------------------------------------------
-           SAVE / DOWNLOAD
+           SAVE / DOWNLOAD / RETURN DATA
         ------------------------------------------------- */
 
         const finalBytes =
             await reviewedPdf.save();
-
-        const blob =
-            new Blob(
-                [finalBytes],
-                {
-                    type:"application/pdf"
-                }
-            );
-
-        const downloadURL =
-            URL.createObjectURL(blob);
-
-        const link =
-            document.createElement("a");
-
-        link.href =
-            downloadURL;
 
         const studentName =
             student && student.name
                 ? student.name
                 : "Student";
 
-        link.download =
+        const filename =
             sanitizeFilename(
                 submission.reg_no +
                 "_" +
@@ -2865,26 +2867,59 @@ async function generateReviewedPDF(id){
                 "_Reviewed.pdf"
             );
 
-        document.body.appendChild(link);
+        if(downloadFile){
 
-        link.click();
-
-        link.remove();
-
-        setTimeout(
-            function(){
-                URL.revokeObjectURL(
-                    downloadURL
+            const blob =
+                new Blob(
+                    [finalBytes],
+                    {
+                        type:"application/pdf"
+                    }
                 );
-            },
-            3000
-        );
 
-        alert(
-            "Reviewed PDF generated successfully.\n\n" +
-            "The original assignment pages were retained unchanged, " +
-            "and the evaluation page was added at the end."
-        );
+            const downloadURL =
+                URL.createObjectURL(blob);
+
+            const link =
+                document.createElement("a");
+
+            link.href =
+                downloadURL;
+
+            link.download =
+                filename;
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            setTimeout(
+                function(){
+                    URL.revokeObjectURL(
+                        downloadURL
+                    );
+                },
+                3000
+            );
+
+            alert(
+                "Reviewed PDF generated successfully.\n\n" +
+                "The evaluation page is on Page 1, and the original assignment pages follow it."
+            );
+
+        }
+
+        return {
+            finalBytes: finalBytes,
+            filename: filename,
+            studentName: studentName,
+            studentEmail: student && student.email
+                ? String(student.email).trim().toLowerCase()
+                : "",
+            assignmentTitle: assignment.title || "Reviewed Assignment"
+        };
 
     }catch(error){
 
@@ -2897,6 +2932,8 @@ async function generateReviewedPDF(id){
             "Unable to generate Reviewed PDF:\n\n" +
             error.message
         );
+
+        return null;
 
     }finally{
 
@@ -2912,6 +2949,170 @@ async function generateReviewedPDF(id){
 
     }
 
+}
+
+
+/* =====================================================
+   SEND REVIEWED PDF BY EMAIL
+===================================================== */
+
+function bytesToBase64(bytes){
+
+    let binary = "";
+    const chunkSize = 0x8000;
+
+    for(let i = 0; i < bytes.length; i += chunkSize){
+
+        const chunk = bytes.subarray(
+            i,
+            Math.min(i + chunkSize, bytes.length)
+        );
+
+        binary += String.fromCharCode.apply(
+            null,
+            chunk
+        );
+    }
+
+    return btoa(binary);
+}
+
+
+async function sendReviewedPDF(id){
+
+    const submission =
+        allSubmissions.find(
+            function(item){
+                return String(item.id) === String(id);
+            }
+        );
+
+    if(!submission){
+        alert("Submission record not found.");
+        return;
+    }
+
+    if(submission.status !== "Reviewed"){
+        alert("Please save the marks and feedback first.");
+        return;
+    }
+
+    const student =
+        allStudents.find(
+            function(item){
+                return String(item.reg_no) ===
+                       String(submission.reg_no);
+            }
+        );
+
+    const studentEmail =
+        student && student.email
+            ? String(student.email).trim().toLowerCase()
+            : "";
+
+    if(!studentEmail){
+        alert("Student email address is not available.");
+        return;
+    }
+
+    const confirmed = confirm(
+        "Send the reviewed PDF to:\n\n" +
+        studentEmail +
+        "\n\nThe PDF will contain the review page followed by the original assignment.\n\nContinue?"
+    );
+
+    if(!confirmed){
+        return;
+    }
+
+    const buttons = document.querySelectorAll(
+        `button[onclick="sendReviewedPDF(${id})"]`
+    );
+
+    buttons.forEach(function(button){
+        button.disabled = true;
+        button.style.opacity = "0.7";
+        button.innerText = "Sending...";
+    });
+
+    try{
+
+        const {
+            data: { session },
+            error: sessionError
+        } = await db.auth.getSession();
+
+        if(sessionError || !session){
+            throw new Error(
+                "Teacher login session has expired. Please login again."
+            );
+        }
+
+        const reviewed =
+            await generateReviewedPDF(id, false);
+
+        if(!reviewed){
+            return;
+        }
+
+        const pdfBase64 =
+            bytesToBase64(reviewed.finalBytes);
+
+        const response =
+            await fetch(
+                "https://cfhhcmyfewvvdylqvcdg.supabase.co/functions/v1/send-reviewed-pdf",
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"application/json",
+                        "Authorization":
+                            "Bearer " + session.access_token
+                    },
+                    body:JSON.stringify({
+                        to: reviewed.studentEmail,
+                        studentName: reviewed.studentName,
+                        assignmentTitle: reviewed.assignmentTitle,
+                        pdfBase64: pdfBase64,
+                        filename: reviewed.filename
+                    })
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if(!response.ok){
+            throw new Error(
+                result.error ||
+                "Unable to send the reviewed PDF."
+            );
+        }
+
+        alert(
+            "Reviewed PDF sent successfully!\n\n" +
+            "Sent to: " + reviewed.studentEmail
+        );
+
+    }catch(error){
+
+        console.error(
+            "SEND REVIEWED PDF ERROR:",
+            error
+        );
+
+        alert(
+            "Unable to send the reviewed PDF:\n\n" +
+            error.message
+        );
+
+    }finally{
+
+        buttons.forEach(function(button){
+            button.disabled = false;
+            button.style.opacity = "1";
+            button.innerText = "📧 Send by Email";
+        });
+    }
 }
 
 
