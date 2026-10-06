@@ -2158,12 +2158,13 @@ async function generateReviewedPDF(id){
 
 
         /* -------------------------------------------------
-           ADD REVIEW PAGE AT THE END
+           ADD REVIEW PAGE AT THE BEGINNING
            Original pages are not changed.
         ------------------------------------------------- */
 
         const page =
-            reviewedPdf.addPage(
+            reviewedPdf.insertPage(
+                0,
                 [
                     PDFLib.PageSizes.A4[0],
                     PDFLib.PageSizes.A4[1]
