@@ -258,6 +258,24 @@ tbody tr:hover td{
     font-weight:bold;
 }
 
+.remarks-input{
+    width:220px !important;
+    min-width:220px;
+    min-height:58px;
+    padding:8px !important;
+    border:1px solid #cbd5e1;
+    border-radius:6px;
+    font-size:13px;
+    resize:vertical;
+    font-family:Arial,Helvetica,sans-serif;
+    vertical-align:middle;
+}
+
+.remarks-input:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+
 .empty{
     padding:45px;
     text-align:center;
@@ -649,6 +667,7 @@ id="reviewedCount">
 <th>Status</th>
 <th>Submitted PDF</th>
 <th>Marks</th>
+<th>Feedback / Remarks</th>
 <th>Action</th>
 
 </tr>
@@ -660,7 +679,7 @@ id="reviewedCount">
 <tr>
 
 <td
-colspan="8"
+colspan="9"
 class="empty">
 
 Loading submissions...
@@ -956,7 +975,7 @@ async function loadAllData(){
     <tr>
 
     <td
-    colspan="8"
+    colspan="9"
     class="empty">
 
     Loading submissions...
@@ -1214,7 +1233,7 @@ function displaySubmissions(){
         <tr>
 
         <td
-        colspan="8"
+        colspan="9"
         class="empty">
 
         No student submissions found.
@@ -1424,6 +1443,16 @@ function displaySubmissions(){
                 submission.marks ?? ""
             }"
             placeholder="—">
+
+            </td>
+
+            <td>
+
+            <textarea
+            id="remarks_${submission.id}"
+            class="remarks-input"
+            rows="2"
+            placeholder="Enter feedback / remarks">${submission.remarks ?? ""}</textarea>
 
             </td>
 
@@ -1881,15 +1910,23 @@ async function viewPDF(filename){
 
 async function saveMarks(id){
 
-    const input =
+    const marksInput =
         document.getElementById(
             "marks_" + id
         );
 
+    const remarksInput =
+        document.getElementById(
+            "remarks_" + id
+        );
 
     const marks =
-        input.value.trim();
+        marksInput.value.trim();
 
+    const remarks =
+        remarksInput
+        ? remarksInput.value.trim()
+        : "";
 
     if(marks === ""){
 
@@ -1899,7 +1936,6 @@ async function saveMarks(id){
 
         return;
     }
-
 
     if(
         Number(marks) < 0 ||
@@ -1913,7 +1949,6 @@ async function saveMarks(id){
         return;
     }
 
-
     const {
         error
     } = await db
@@ -1922,6 +1957,9 @@ async function saveMarks(id){
 
             marks:
                 Number(marks),
+
+            remarks:
+                remarks || null,
 
             status:
                 "Reviewed"
@@ -1932,22 +1970,19 @@ async function saveMarks(id){
             id
         );
 
-
     if(error){
 
         alert(
-            "Unable to save marks:\n\n" +
+            "Unable to save marks and feedback:\n\n" +
             error.message
         );
 
         return;
     }
 
-
     alert(
-        "Review completed successfully!"
+        "Marks and feedback saved successfully!"
     );
-
 
     await loadAllData();
 
