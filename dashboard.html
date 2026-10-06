@@ -23,6 +23,14 @@ body{
     justify-content:space-between;
     align-items:center;
     margin-bottom:20px;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.top-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
 }
 
 .badge{
@@ -30,6 +38,20 @@ body{
     color:white;
     padding:8px 15px;
     border-radius:20px;
+}
+
+.logout-btn{
+    background:#dc2626;
+    color:white;
+    border:none;
+    padding:9px 15px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.logout-btn:hover{
+    background:#b91c1c;
 }
 
 .card{
@@ -103,8 +125,27 @@ button:hover{
 <div class="container">
 
 <div class="top">
-    <h2>My Assignments</h2>
-    <div class="badge" id="sem">Semester</div>
+
+    <div class="top-left">
+
+        <h2 style="margin:0;">
+            My Assignments
+        </h2>
+
+        <div class="badge" id="sem">
+            Semester
+        </div>
+
+    </div>
+
+    <button
+        class="logout-btn"
+        onclick="studentLogout()">
+
+        🚪 Logout
+
+    </button>
+
 </div>
 
 <p id="reg"></p>
@@ -126,10 +167,65 @@ const semester = localStorage.getItem("semester");
 const reg = localStorage.getItem("reg_no");
 
 document.getElementById("sem").innerHTML =
-    "Semester " + semester;
+    "Semester " + (semester || "");
 
 document.getElementById("reg").innerHTML =
-    "Register No : " + reg;
+    "Register No : " + (reg || "");
+
+
+/* =====================================================
+   STUDENT LOGOUT
+===================================================== */
+
+async function studentLogout(){
+
+    const confirmed = confirm(
+        "Are you sure you want to logout?"
+    );
+
+    if(!confirmed){
+        return;
+    }
+
+    try{
+
+        const { error } =
+            await db.auth.signOut();
+
+        if(error){
+
+            alert(
+                "Unable to logout:\n\n" +
+                error.message
+            );
+
+            return;
+        }
+
+        /*
+           Remove only temporary browser
+           login information.
+
+           This does NOT delete the student,
+           submissions, marks or database records.
+        */
+
+        localStorage.removeItem("semester");
+        localStorage.removeItem("reg_no");
+
+        window.location.href =
+            "student.html";
+
+    }catch(error){
+
+        alert(
+            "Unable to logout:\n\n" +
+            error.message
+        );
+
+    }
+
+}
 
 
 /* =====================================================
