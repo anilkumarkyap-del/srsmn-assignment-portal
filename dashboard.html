@@ -167,6 +167,14 @@ button:hover{
     line-height:1.5;
 }
 
+.reviewed-download-btn{
+    margin-top:12px;
+    background:#7c3aed;
+    color:white;
+    font-weight:bold;
+}
+
+
 </style>
 </head>
 
@@ -443,6 +451,28 @@ function getSubmissionStatusHTML(assignmentId){
     }
 
 
+    let reviewedPdfHTML = "";
+
+    if(submission.reviewed_pdf_url){
+
+        reviewedPdfHTML = `
+            <button
+                class="reviewed-download-btn"
+                onclick="downloadReviewedPDF('${escapeHTML(submission.reviewed_pdf_url)}')">
+                📄 Download Reviewed PDF
+            </button>
+        `;
+
+    }else{
+
+        reviewedPdfHTML = `
+            <div style="margin-top:12px;color:#64748b;font-size:13px;">
+                The reviewed PDF is not available yet. Please check again after the teacher generates it.
+            </div>
+        `;
+
+    }
+
     return `
 
     <div class="submission-status status-reviewed">
@@ -454,6 +484,8 @@ function getSubmissionStatusHTML(assignmentId){
         ${marksHTML}
 
         ${feedbackHTML}
+
+        ${reviewedPdfHTML}
 
     </div>
 
@@ -663,6 +695,32 @@ async function downloadQuestionPDF(filePath){
         data.signedUrl,
         "_blank"
     );
+
+}
+
+
+/* =====================================================
+   DOWNLOAD REVIEWED PDF
+===================================================== */
+
+async function downloadReviewedPDF(filePath){
+
+    if(!filePath){
+        alert("Reviewed PDF is not available yet.");
+        return;
+    }
+
+    const { data, error } = await db
+        .storage
+        .from("assignments")
+        .createSignedUrl(filePath, 3600);
+
+    if(error){
+        alert("Unable to open Reviewed PDF:\\n\\n" + error.message);
+        return;
+    }
+
+    window.open(data.signedUrl, "_blank");
 
 }
 
