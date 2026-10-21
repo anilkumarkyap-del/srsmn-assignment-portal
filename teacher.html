@@ -653,7 +653,7 @@ id="pendingCount">
 <div class="stat-box">
 
 <span class="stat-title">
-Reviewed
+Checked
 </span>
 
 <span
@@ -1371,7 +1371,16 @@ function displaySubmissions(){
                     class="reviewed-pdf-btn"
                     onclick="generateReviewedPDF(${submission.id}, false)">
 
-                    📄 Reviewed PDF
+                    📄 Checked PDF
+
+                    </button>
+
+                    <button
+                    class="pdf-btn"
+                    style="background:#0f766e;margin:5px 0 0 5px;"
+                    onclick="downloadReviewedPDF(${submission.id})">
+
+                    ⬇ Download Checked PDF
 
                     </button>
 `
@@ -1931,7 +1940,7 @@ async function deleteSelectedAssignment(){
         "Assignment: " + assignment.title + "\\n" +
         "Subject: " + (assignment.subject || "-") + "\\n" +
         "Related submission records: " + relatedSubmissions.length + "\\n\\n" +
-        "This will delete this assignment, its question PDF, student submission PDFs, reviewed PDFs, and its submission records.\\n\\n" +
+        "This will delete this assignment, its question PDF, student submission PDFs, checked PDFs, and its submission records.\\n\\n" +
         "Student registrations and other assignments will NOT be deleted.\\n\\n" +
         "Please download a ZIP backup first if you need to keep the submissions.\\n\\n" +
         "Continue?"
@@ -2122,6 +2131,64 @@ async function saveMarks(id){
 
     await loadAllData();
 
+}
+
+
+/* =====================================================
+   DOWNLOAD ALREADY-SAVED REVIEWED PDF (TEACHER-INITIATED)
+===================================================== */
+
+async function downloadReviewedPDF(id){
+
+    const submission = allSubmissions.find(
+        function(item){
+            return String(item.id) === String(id);
+        }
+    );
+
+    if(!submission){
+        alert("Submission record not found. Please refresh the page.");
+        return;
+    }
+
+    if(!submission.reviewed_pdf_url){
+        alert("The checked PDF has not been generated yet. Click Checked PDF first, then use Download Checked PDF.");
+        return;
+    }
+
+    try{
+        const { data, error } = await db
+            .storage
+            .from("assignments")
+            .createSignedUrl(submission.reviewed_pdf_url, 3600);
+
+        if(error){
+            throw new Error(error.message);
+        }
+
+        const response = await fetch(data.signedUrl);
+        if(!response.ok){
+            throw new Error("Could not retrieve the reviewed PDF.");
+        }
+
+        const blob = await response.blob();
+        const downloadURL = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadURL;
+        link.download = sanitizeFilename(
+            "Checked_" + submission.reg_no + "_" + submission.id + ".pdf"
+        );
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(function(){
+            URL.revokeObjectURL(downloadURL);
+        }, 3000);
+
+    }catch(error){
+        alert("Unable to download Checked PDF:\n\n" + error.message);
+    }
 }
 
 
@@ -2494,7 +2561,7 @@ async function generateReviewedPDF(id, downloadFile = true){
         ------------------------------------------------- */
 
         const title =
-            "ASSIGNMENT EVALUATION / REVIEWED ASSIGNMENT";
+            "ASSIGNMENT CHECKING SHEET";
 
         const titleWidth =
             boldFont.widthOfTextAtSize(
@@ -2883,11 +2950,11 @@ async function generateReviewedPDF(id, downloadFile = true){
 
 
         /* -------------------------------------------------
-           REVIEWED DATE / TIME
+           CHECKED DATE / TIME
         ------------------------------------------------- */
 
         drawText(
-            "Reviewed on: " + dateText,
+            "Checked on: " + dateText,
             60,
             155,
             {
@@ -2952,7 +3019,7 @@ async function generateReviewedPDF(id, downloadFile = true){
                 studentName +
                 "_" +
                 assignment.title +
-                "_Reviewed.pdf"
+                "_Checked.pdf"
             );
 
         /* SAVE REVIEWED PDF TO SUPABASE STORAGE */
@@ -2960,7 +3027,7 @@ async function generateReviewedPDF(id, downloadFile = true){
             "reviewed/" +
             sanitizeFilename(String(submission.assignment_id)) + "/" +
             sanitizeFilename(String(submission.reg_no)) + "_" +
-            sanitizeFilename(String(submission.id)) + "_Reviewed.pdf";
+            sanitizeFilename(String(submission.id)) + "_Checked.pdf";
 
         const reviewedBlob = new Blob(
             [finalBytes],
@@ -2977,7 +3044,7 @@ async function generateReviewedPDF(id, downloadFile = true){
 
         if(uploadError){
             throw new Error(
-                "The reviewed PDF was created, but could not be saved to Storage:\n\n" +
+                "The checked PDF was created, but could not be saved to Storage:\n\n" +
                 uploadError.message
             );
         }
@@ -2989,7 +3056,7 @@ async function generateReviewedPDF(id, downloadFile = true){
 
         if(savePathError){
             throw new Error(
-                "The reviewed PDF was uploaded, but its path could not be saved to the submission record:\n\n" +
+                "The checked PDF was uploaded, but its path could not be saved to the submission record:\n\n" +
                 savePathError.message
             );
         }
@@ -3034,7 +3101,7 @@ async function generateReviewedPDF(id, downloadFile = true){
             );
 
             alert(
-                "Reviewed PDF saved successfully.\n\n" +
+                "Checked PDF saved successfully.\n\n" +
                 "It is stored for the student to download from Student Login.\n" +
                 "The evaluation page is on Page 1, followed by the original assignment."
             );
@@ -3046,7 +3113,7 @@ async function generateReviewedPDF(id, downloadFile = true){
             filename: filename,
             studentName: studentName,
             reviewedPdfPath: reviewedPath,
-            assignmentTitle: assignment.title || "Reviewed Assignment"
+            assignmentTitle: assignment.title || "Checked Assignment"
         };
 
     }catch(error){
@@ -3057,7 +3124,7 @@ async function generateReviewedPDF(id, downloadFile = true){
         );
 
         alert(
-            "Unable to generate Reviewed PDF:\n\n" +
+            "Unable to generate Checked PDF:\n\n" +
             error.message
         );
 
@@ -3071,7 +3138,7 @@ async function generateReviewedPDF(id, downloadFile = true){
             button.style.opacity = "1";
             button.innerText =
                 originalButtonText ||
-                "📄 Reviewed PDF";
+                "📄 Checked PDF";
 
         }
 
