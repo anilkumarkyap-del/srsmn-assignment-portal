@@ -3269,6 +3269,15 @@ function displayStudents(){
 
             </button>
 
+            <button
+            class="delete-btn"
+            style="background:#b91c1c;color:#fff;border:0;border-radius:6px;padding:8px 10px;margin-left:6px;cursor:pointer;"
+            onclick="deleteStudent(${JSON.stringify(String(student.reg_no || ""))})">
+
+            🗑️ Delete
+
+            </button>
+
             </td>
 
             </tr>
@@ -3282,6 +3291,85 @@ function displayStudents(){
     table.innerHTML =
         html;
 
+}
+
+
+/* =====================================================
+   DELETE STUDENT AND ASSOCIATED SUBMISSIONS/PDFS
+   Requires the secure Supabase Edge Function: delete-student
+===================================================== */
+
+async function deleteStudent(regNo){
+
+    const student = allStudents.find(function(item){
+        return String(item.reg_no) === String(regNo);
+    });
+
+    if(!student){
+        alert("Student not found. Please refresh the student list.");
+        return;
+    }
+
+    const relatedSubmissions = allSubmissions.filter(function(item){
+        return String(item.reg_no) === String(regNo);
+    });
+
+    const confirmed = confirm(
+        "⚠️ PERMANENTLY DELETE STUDENT?\n\n" +
+        "Name: " + (student.name || "-") + "\n" +
+        "Register Number: " + regNo + "\n" +
+        "Related submissions: " + relatedSubmissions.length + "\n\n" +
+        "This will permanently delete the student's registration, all their submission records, and associated original/checked PDFs.\n\n" +
+        "Other students and assignments will NOT be deleted.\n\n" +
+        "Download a ZIP backup first if you need to keep their work.\n\n" +
+        "Continue?"
+    );
+
+    if(!confirmed){
+        return;
+    }
+
+    const buttons = Array.from(document.querySelectorAll("#studentTable button"));
+    buttons.forEach(function(button){ button.disabled = true; });
+
+    try{
+        const { data: { session } } = await db.auth.getSession();
+
+        if(!session){
+            throw new Error("Teacher session expired. Please log in again.");
+        }
+
+        const response = await fetch(
+            "https://cfhhcmyfewvvdylqvcdg.supabase.co/functions/v1/delete-student",
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + session.access_token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ reg_no: String(regNo) })
+            }
+        );
+
+        const result = await response.json();
+
+        if(!response.ok){
+            throw new Error(result.error || "Unable to delete student.");
+        }
+
+        alert(
+            "Student deleted successfully.\n\n" +
+            "Registration, related submissions, and associated PDFs have been removed.\n" +
+            "Other students and assignments were retained."
+        );
+
+        await loadAllData();
+
+    }catch(error){
+        alert("Unable to delete student:\n\n" + error.message);
+    }finally{
+        buttons.forEach(function(button){ button.disabled = false; });
+    }
 }
 
 
