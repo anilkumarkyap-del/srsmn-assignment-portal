@@ -712,6 +712,56 @@ Loading submissions...
 </div>
 
 
+<!-- MARKS REGISTER AND SUBMISSION DASHBOARD -->
+
+<div class="card" id="marksReportsCard">
+
+<h2>📊 Marks Register & Submission Dashboard</h2>
+<p style="color:#64748b;margin-top:-5px;">Track submissions, checking progress and assignment marks by semester.</p>
+
+<div class="filter-area">
+  <div class="filter-group">
+    <label for="reportSemester">Select Semester</label>
+    <select id="reportSemester" onchange="renderMarksReports()">
+      <option value="">All Semesters</option>
+      <option value="1">I Semester</option>
+      <option value="2">II Semester</option>
+      <option value="3">III Semester</option>
+      <option value="4">IV Semester</option>
+      <option value="5">V Semester</option>
+      <option value="6">VI Semester</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="reportAssignment">Marks Register</label>
+    <select id="reportAssignment" onchange="renderMarksReports()">
+      <option value="">All assignments in selected semester</option>
+    </select>
+  </div>
+  <div>
+    <button class="refresh-btn" onclick="renderMarksReports()">🔄 Refresh Report</button>
+    <button class="pdf-btn" onclick="exportMarksRegister()" style="margin-left:8px;">📥 Export to Excel</button>
+  </div>
+</div>
+
+<div class="stats" style="margin-top:16px;">
+  <div class="stat-box"><span class="stat-title">Expected Submissions</span><span class="stat-number" id="reportExpected">0</span></div>
+  <div class="stat-box"><span class="stat-title">Submitted</span><span class="stat-number" id="reportSubmitted">0</span></div>
+  <div class="stat-box"><span class="stat-title">Pending Submission</span><span class="stat-number pending-number" id="reportPendingSubmission">0</span></div>
+  <div class="stat-box"><span class="stat-title">Checked</span><span class="stat-number reviewed-number" id="reportChecked">0</span></div>
+  <div class="stat-box"><span class="stat-title">Awaiting Checking</span><span class="stat-number pending-number" id="reportPendingChecking">0</span></div>
+</div>
+
+<p id="reportNote" style="font-size:13px;color:#64748b;"></p>
+<div class="table-container">
+  <table id="marksRegisterTable">
+    <thead id="marksRegisterHead"><tr><th>Register No.</th><th>Student Name</th><th>Semester</th></tr></thead>
+    <tbody id="marksRegisterBody"><tr><td colspan="3" class="empty">Loading marks register...</td></tr></tbody>
+  </table>
+</div>
+</div>
+
+
 <!-- STUDENT MANAGEMENT -->
 
 <div class="card">
@@ -890,6 +940,7 @@ Save Changes
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script src="app.js"></script>
 
@@ -1093,6 +1144,10 @@ async function loadAllData(){
     displaySubmissions();
 
     displayStudents();
+
+    populateReportAssignmentFilter();
+
+    renderMarksReports();
 
 }
 
@@ -3144,6 +3199,132 @@ async function generateReviewedPDF(id, downloadFile = true){
 
     }
 
+}
+
+
+/* =====================================================
+   MARKS REGISTER + SUBMISSION DASHBOARD
+===================================================== */
+
+function populateReportAssignmentFilter(){
+    const dropdown = document.getElementById("reportAssignment");
+    if(!dropdown) return;
+    const oldValue = dropdown.value;
+    const semesterValue = document.getElementById("reportSemester").value;
+    const available = allAssignments.filter(a => {
+        if(!semesterValue) return true;
+        return String(a.semester || "") === String(semesterValue);
+    });
+    dropdown.innerHTML = '<option value="">All assignments in selected semester</option>';
+    available.forEach(a => {
+        const option = document.createElement("option");
+        option.value = String(a.id);
+        option.textContent = (a.title || "Assignment") + (a.subject ? " - " + a.subject : "");
+        dropdown.appendChild(option);
+    });
+    if(available.some(a => String(a.id) === oldValue)) dropdown.value = oldValue;
+}
+
+function renderMarksReports(){
+    const semesterValue = document.getElementById("reportSemester").value;
+    const selectedAssignment = document.getElementById("reportAssignment").value;
+    // Keep assignment choices consistent with the selected semester.
+    const dropdown = document.getElementById("reportAssignment");
+    const oldAssignment = dropdown.value;
+    const validAssignments = allAssignments.filter(a => !semesterValue || String(a.semester || "") === String(semesterValue));
+    if(Array.from(dropdown.options).length !== validAssignments.length + 1 || !validAssignments.some(a => String(a.id) === oldAssignment)){
+        populateReportAssignmentFilter();
+    }
+    const assignmentFilter = document.getElementById("reportAssignment").value;
+    const students = allStudents.filter(s => !semesterValue || String(s.semester || "") === String(semesterValue));
+    const assignments = validAssignments.filter(a => !assignmentFilter || String(a.id) === String(assignmentFilter));
+    const studentRegs = new Set(students.map(s => String(s.reg_no)));
+    const relevantSubmissions = allSubmissions.filter(sub => {
+        if(!studentRegs.has(String(sub.reg_no))) return false;
+        const assignment = allAssignments.find(a => String(a.id) === String(sub.assignment_id));
+        if(!assignment) return false;
+        if(semesterValue && String(assignment.semester || "") !== String(semesterValue)) return false;
+        if(assignmentFilter && String(sub.assignment_id) !== String(assignmentFilter)) return false;
+        return true;
+    });
+    const expected = students.length * assignments.length;
+    const submittedPairs = new Set(relevantSubmissions.map(sub => String(sub.reg_no) + "::" + String(sub.assignment_id)));
+    const checkedSubmissions = relevantSubmissions.filter(sub => String(sub.status || "").toLowerCase() === "reviewed" || String(sub.status || "").toLowerCase() === "checked");
+    const pendingChecking = relevantSubmissions.length - checkedSubmissions.length;
+    document.getElementById("reportExpected").textContent = expected;
+    document.getElementById("reportSubmitted").textContent = relevantSubmissions.length;
+    document.getElementById("reportPendingSubmission").textContent = Math.max(0, expected - submittedPairs.size);
+    document.getElementById("reportChecked").textContent = checkedSubmissions.length;
+    document.getElementById("reportPendingChecking").textContent = pendingChecking;
+    document.getElementById("reportNote").textContent = assignments.length === 0
+      ? "No assignments found for this selection. Create an assignment for the relevant semester to start tracking marks."
+      : "Expected submissions = registered students in the selected semester × assignments included in this report. Marks are shown only when saved in the portal.";
+
+    const head = document.getElementById("marksRegisterHead");
+    const body = document.getElementById("marksRegisterBody");
+    let header = "<tr><th>#</th><th>Register No.</th><th>Student Name</th><th>Semester</th>";
+    assignments.forEach(a => { header += "<th>" + escapeReportText(a.title || "Assignment") + " (Marks)</th>"; });
+    header += "<th>Total Marks</th><th>Average</th><th>Submission Status</th></tr>";
+    head.innerHTML = header;
+
+    if(students.length === 0){
+        body.innerHTML = '<tr><td colspan="' + (assignments.length + 7) + '" class="empty">No registered students found for this selection.</td></tr>';
+        return;
+    }
+    const sortedStudents = [...students].sort((a,b) => String(a.reg_no || "").localeCompare(String(b.reg_no || "")));
+    let rows = "";
+    sortedStudents.forEach((student,index) => {
+        let totalMarks = 0, markedCount = 0, submittedCount = 0;
+        let cells = "";
+        assignments.forEach(assignment => {
+            const sub = allSubmissions.find(item => String(item.reg_no) === String(student.reg_no) && String(item.assignment_id) === String(assignment.id));
+            if(sub){
+                submittedCount++;
+                if(sub.marks !== null && sub.marks !== undefined && String(sub.marks).trim() !== ""){
+                    const mark = Number(sub.marks);
+                    if(Number.isFinite(mark)){ totalMarks += mark; markedCount++; }
+                    cells += "<td>" + escapeReportText(String(sub.marks)) + "</td>";
+                } else cells += "<td>—</td>";
+            } else cells += "<td>—</td>";
+        });
+        const average = markedCount ? (totalMarks / markedCount).toFixed(2) : "—";
+        const submissionStatus = assignments.length ? (submittedCount + "/" + assignments.length + " submitted") : "—";
+        rows += "<tr><td>" + (index+1) + "</td><td>" + escapeReportText(String(student.reg_no || "")) + "</td><td>" + escapeReportText(String(student.name || "")) + "</td><td>" + escapeReportText(String(student.semester || "—")) + "</td>" + cells + "<td>" + (markedCount ? totalMarks.toFixed(2).replace(/\.00$/,'') : "—") + "</td><td>" + average + "</td><td>" + submissionStatus + "</td></tr>";
+    });
+    body.innerHTML = rows;
+}
+
+function escapeReportText(value){
+    return String(value).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+
+function exportMarksRegister(){
+    if(typeof XLSX === "undefined"){
+        alert("Excel export library did not load. Please refresh the page and try again.");
+        return;
+    }
+    const table = document.getElementById("marksRegisterTable");
+    if(!table || !table.querySelector("tbody tr")){
+        alert("There is no marks register to export.");
+        return;
+    }
+    const rows = [];
+    table.querySelectorAll("tr").forEach(tr => {
+        rows.push(Array.from(tr.querySelectorAll("th,td")).map(cell => cell.innerText.trim()));
+    });
+    if(rows.length < 2 || (rows.length === 2 && rows[1].join(" ").includes("No registered students"))){
+        alert("No student marks data is available to export.");
+        return;
+    }
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws["!cols"] = rows[0].map((_,i) => ({wch: Math.min(28, Math.max(14, ...rows.map(r => String(r[i] || "").length + 2)))}));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Marks Register");
+    const semester = document.getElementById("reportSemester").value || "All_Semesters";
+    const assignment = document.getElementById("reportAssignment").value;
+    const assignmentObj = allAssignments.find(a => String(a.id) === String(assignment));
+    const suffix = assignmentObj ? "_" + String(assignmentObj.title || "Assignment").replace(/[^a-z0-9_-]/gi,"_") : "";
+    XLSX.writeFile(wb, "BCom_Marks_Register_Semester_" + semester + suffix + ".xlsx");
 }
 
 
